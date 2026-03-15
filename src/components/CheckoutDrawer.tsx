@@ -32,12 +32,17 @@ interface CheckoutDrawerProps {
 const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
   const { totalPrice, clearCart, items } = useCart();
   const [name, setName] = useState("");
-  const [tableNumber, setTableNumber] = useState(""); // This will now store "1" through "10"
   const [payment, setPayment] = useState("counter");
   const [receipt, setReceipt] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Array for numbers 1 to 10
+  // ── Read table number from URL ?table=X automatically ─────────────────────
+  const urlTable =
+    new URLSearchParams(window.location.search).get("table") ?? "";
+  const [tableNumber, setTableNumber] = useState(urlTable);
+  const tableFromUrl = !!urlTable;
+
+  // Array for numbers 1 to 10 (fallback if no URL param)
   const tableOptions = Array.from({ length: 10 }, (_, i) => (i + 1).toString());
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -127,26 +132,37 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
                 />
               </div>
 
-              {/* --- UPDATED TABLE DROPDOWN --- */}
+              {/* ── Table number — auto from QR or manual select ── */}
               <div className="space-y-2">
                 <Label htmlFor="table">Table #</Label>
-                <Select
-                  value={tableNumber}
-                  onValueChange={setTableNumber}
-                  disabled={isSubmitting}
-                  required
-                >
-                  <SelectTrigger className="rounded-xl border-black/10 focus:border-black">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tableOptions.map((num) => (
-                      <SelectItem key={num} value={num}>
-                        Table {num}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {tableFromUrl ? (
+                  // Locked — came from QR code scan
+                  <div className="flex items-center gap-2 rounded-xl border border-black bg-black text-white px-4 py-2.5 text-sm font-semibold">
+                    <span>Table {tableNumber}</span>
+                    <span className="ml-auto text-xs font-normal opacity-60">
+                      via QR
+                    </span>
+                  </div>
+                ) : (
+                  // Manual select — no QR used
+                  <Select
+                    value={tableNumber}
+                    onValueChange={setTableNumber}
+                    disabled={isSubmitting}
+                    required
+                  >
+                    <SelectTrigger className="rounded-xl border-black/10 focus:border-black">
+                      <SelectValue placeholder="Select table" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tableOptions.map((num) => (
+                        <SelectItem key={num} value={num}>
+                          Table {num}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
