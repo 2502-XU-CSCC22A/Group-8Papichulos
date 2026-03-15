@@ -12,8 +12,8 @@ import { HistoryPanel } from "./Historypanel";
 import { MenuItemCard } from "./MenuItemCard";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminTopBar, AdminBottomNav } from "./AdminNav";
-import { CategoryManager } from "./CategoryManager";
-import { CarouselManager } from "./CarouselManager";
+import { CategoryManager } from "./Categorymanager";
+import { CarouselManager } from "./Carouselmanager";
 
 type TabKey = "orders" | "inventory" | "history" | "carousel";
 
