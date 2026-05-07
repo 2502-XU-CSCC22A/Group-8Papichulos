@@ -11,9 +11,11 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
+  Download,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import * as xlsx from "xlsx";
 import { C, HISTORY_FILTERS } from "./constants";
 import { Pill, Lbl, HR } from "./AdminPrimitives";
 
@@ -410,16 +412,33 @@ export const HistoryPanel = ({
   const [typeFilter, setTypeFilter] = useState("all");
   const [selectedDate, setSelectedDate] = useState<string>(todayKey());
   const [mode, setMode] = useState<"today" | "lookup">("today");
+  const [exportMode, setExportMode] = useState<"day" | "month">("day");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [showConfirm, setShowConfirm] = useState(false);
   const [cleaning, setCleaning] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
+  const monthInputRef = useRef<HTMLInputElement>(null);
 
-  const maxDate = todayKey();
+const maxDate = todayKey();
   const displayDate = mode === "today" ? todayKey() : selectedDate;
   const dayOrders = orders.filter(
     (o) => toDateKey(o.created_at) === displayDate,
   );
   const isToday = displayDate === todayKey();
+
+  // Month logic
+  const currentMonthKey = (() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  })();
+  const monthOrders = exportMode === "month" && selectedMonth 
+    ? orders.filter(o => {
+        const orderDateKey = toDateKey(o.created_at);
+        return orderDateKey.startsWith(selectedMonth);
+      })
+    : [];
+  const ordersToShow = exportMode === "month" && selectedMonth ? monthOrders : dayOrders;
+  const isMonthMode = exportMode === "month";
 
   // Count how many orders are older than 60 days
   const cutoff = new Date();
@@ -440,8 +459,27 @@ export const HistoryPanel = ({
     }
   };
 
-  const browseLabel =
-    mode === "lookup"
+  const openMonthPicker = () => {
+    if (monthInputRef.current && !selectedMonth) {
+      setSelectedMonth(currentMonthKey);
+    }
+    if (monthInputRef.current) {
+      try {
+        monthInputRef.current.showPicker();
+      } catch {
+        monthInputRef.current.click();
+      }
+    }
+  };
+
+const browseLabel = isMonthMode 
+    ? selectedMonth 
+      ? new Date(selectedMonth + "-01").toLocaleDateString("en-PH", { 
+          year: "numeric", 
+          month: "long" 
+        })
+      : "Select Month"
+    : mode === "lookup"
       ? new Date(
         Number(selectedDate.split("-")[0]),
         Number(selectedDate.split("-")[1]) - 1,
@@ -452,6 +490,70 @@ export const HistoryPanel = ({
         year: "numeric",
       })
       : "Browse by Date";
+
+  // ── Export to Excel ────────────────────────────────────────────────────────
+  const exportToExcel = () => {
+    const ordersToExport = ordersToShow.length > 0 ? ordersToShow : dayOrders;
+    if (ordersToExport.length === 0) {
+      toast("No orders to export");
+      return;
+    }
+
+    const rows: any[] = [];
+    ordersToExport.forEach((order) => {
+      const date = new Date(order.created_at);
+      const dateStr = date.toLocaleDateString("en-PH");
+      const timeStr = date.toLocaleTimeString("en-PH", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      if (order.order_items && order.order_items.length > 0) {
+        order.order_items.forEach((item: any) => {
+          rows.push({
+            "Order ID": order.id,
+            Date: dateStr,
+            Time: timeStr,
+            "Table Number": order.table_number,
+            "Customer Name": order.customer_name,
+            Status: order.status,
+            "Payment Method":
+              order.payment_method === "gcash" ? "GCash" : "Pay at Counter",
+            "Item Name": item.name,
+            Quantity: item.quantity,
+            "Unit Price": item.price,
+            "Item Total": item.price * item.quantity,
+            "Order Total": order.total_price,
+            "Receipt URL": order.receipt_url || "",
+          });
+        });
+      } else {
+        rows.push({
+          "Order ID": order.id,
+          Date: dateStr,
+          Time: timeStr,
+          "Table Number": order.table_number,
+          "Customer Name": order.customer_name,
+          Status: order.status,
+          "Payment Method":
+            order.payment_method === "gcash" ? "GCash" : "Pay at Counter",
+          "Item Name": "",
+          Quantity: "",
+          "Unit Price": "",
+          "Item Total": "",
+          "Order Total": order.total_price,
+          "Receipt URL": order.receipt_url || "",
+        });
+      }
+    });
+
+    const ws = xlsx.utils.json_to_sheet(rows);
+    const wb = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(wb, ws, "Orders");
+    const filename = isMonthMode && selectedMonth ? `orders_${selectedMonth}` : `orders_${displayDate}`;
+    xlsx.writeFile(wb, `${filename}.xlsx`);
+    toast.success(`Exported ${isMonthMode ? selectedMonth : displayDate} orders to Excel`);
+  };
 
   // ── Delete old orders ──────────────────────────────────────────────────────
   const clearOldHistory = async () => {
@@ -620,7 +722,10 @@ export const HistoryPanel = ({
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         {/* Today button */}
         <button
-          onClick={() => setMode("today")}
+          onClick={() => {
+            setMode("today");
+            setExportMode("day");
+          }}
           style={{
             display: "flex",
             alignItems: "center",
@@ -641,9 +746,32 @@ export const HistoryPanel = ({
           Today
         </button>
 
-        {/* Browse by Date */}
+        {/* By Month button */}
         <button
-          onClick={openDatePicker}
+          onClick={() => setExportMode("month")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "10px 18px",
+            borderRadius: 99,
+            fontSize: 13,
+            fontWeight: 500,
+            border: `1.5px solid ${exportMode === "month" ? C.ink : C.border}`,
+            background: exportMode === "month" ? C.ink : C.surface,
+            color: exportMode === "month" ? C.white : C.mid,
+            cursor: "pointer",
+            transition: "all 0.15s",
+            flexShrink: 0,
+          }}
+        >
+          <CalendarDays size={14} strokeWidth={1.5} />
+          By Month
+        </button>
+
+        {/* Browse / Month picker - dynamic */}
+        <button
+          onClick={exportMode === "month" ? openMonthPicker : openDatePicker}
           style={{
             flex: 1,
             display: "flex",
@@ -653,9 +781,9 @@ export const HistoryPanel = ({
             borderRadius: 99,
             fontSize: 13,
             fontWeight: 500,
-            border: `1.5px solid ${mode === "lookup" ? C.ink : C.border}`,
-            background: mode === "lookup" ? C.ink : C.surface,
-            color: mode === "lookup" ? C.white : C.mid,
+            border: `1.5px solid ${isMonthMode || mode === "lookup" ? C.ink : C.border}`,
+            background: isMonthMode || mode === "lookup" ? C.ink : C.surface,
+            color: isMonthMode || mode === "lookup" ? C.white : C.mid,
             cursor: "pointer",
             transition: "all 0.15s",
           }}
@@ -674,6 +802,7 @@ export const HistoryPanel = ({
             if (e.target.value) {
               setSelectedDate(e.target.value);
               setMode("lookup");
+              setExportMode("day");
             }
           }}
           style={{
@@ -684,6 +813,47 @@ export const HistoryPanel = ({
             pointerEvents: "none",
           }}
         />
+
+        {/* Hidden month input */}
+        <input
+          ref={monthInputRef}
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => {
+            setSelectedMonth(e.target.value);
+            setExportMode("month");
+          }}
+          style={{
+            position: "absolute",
+            width: 0,
+            height: 0,
+            opacity: 0,
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Export to Excel button */}
+        <button
+          onClick={exportToExcel}
+          title="Export orders to Excel"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "10px 14px",
+            borderRadius: 99,
+            fontSize: 13,
+            fontWeight: 500,
+            border: `1.5px solid ${C.border}`,
+            background: C.surface,
+            color: C.mid,
+            cursor: "pointer",
+            flexShrink: 0,
+            transition: "all 0.15s",
+          }}
+        >
+          <Download size={14} strokeWidth={1.5} />
+        </button>
 
         {/* Clear old history button — always visible */}
         <button
@@ -750,7 +920,7 @@ export const HistoryPanel = ({
       </div>
 
       {/* ── Summary strip ── */}
-      <SummaryStrip orders={dayOrders} />
+      <SummaryStrip orders={ordersToShow.length > 0 ? ordersToShow : dayOrders} />
 
       {/* ── Filter pills ── */}
       <div
@@ -812,7 +982,7 @@ export const HistoryPanel = ({
       </div>
 
       {/* ── Order list ── */}
-      <OrderList orders={dayOrders} filter={filter} typeFilter={typeFilter} />
+      <OrderList orders={ordersToShow.length > 0 ? ordersToShow : dayOrders} filter={filter} />
     </div>
   );
 };
