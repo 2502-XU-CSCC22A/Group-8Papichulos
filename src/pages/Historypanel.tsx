@@ -143,6 +143,34 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                 </div>
               </div>
 
+              {/* GCash Thumbnail */}
+              {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(order.receipt_url, "_blank");
+                  }}
+                  title="View GCash Receipt"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    border: `1px solid ${C.line}`,
+                    background: C.lift,
+                    marginRight: 6,
+                    cursor: "zoom-in"
+                  }}
+                >
+                  <img
+                    src={order.receipt_url}
+                    alt="Proof"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+              )}
+
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div
                   style={{
@@ -219,14 +247,14 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                   >
                     Payment —{" "}
                     <span style={{ color: C.mid, fontWeight: 500 }}>
-                      {order.payment_method === "gcash"
-                        ? "GCash"
+                      {(order.payment_method === "gcash" || order.payment_method === "online")
+                        ? "GCash / Online"
                         : "Pay at Counter"}
                     </span>
                   </div>
 
                   {/* Inline GCash Receipt */}
-                  {order.payment_method === "gcash" && order.receipt_url && (
+                  {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
                     <div style={{ marginBottom: 12 }}>
                       <Lbl t="GCash Receipt" />
                       <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>

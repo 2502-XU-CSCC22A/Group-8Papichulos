@@ -25,13 +25,20 @@ const MenuCard = ({ item }: MenuCardProps) => {
       transition={{ duration: 0.3 }}
       className="overflow-hidden rounded-xl border bg-card shadow-sm"
     >
-      <div className="aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <img
           src={item.image}
           alt={item.name}
-          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+          className={`h-full w-full object-cover transition-transform duration-300 hover:scale-105 ${item.is_active === false ? "grayscale opacity-50" : ""}`}
           loading="lazy"
         />
+        {item.is_active === false && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[2px]">
+            <span className="rounded-lg bg-red-600 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm">
+              Out of Stock
+            </span>
+          </div>
+        )}
       </div>
       <div className="p-3">
         <h3 className="font-semibold text-sm leading-tight text-card-foreground">{item.name}</h3>
@@ -39,10 +46,13 @@ const MenuCard = ({ item }: MenuCardProps) => {
         <div className="mt-3 flex items-center justify-between">
           <span className="text-sm font-bold text-card-foreground">₱{item.price}</span>
           <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={handleAdd}
+            whileTap={item.is_active !== false ? { scale: 0.9 } : undefined}
+            onClick={item.is_active !== false ? handleAdd : undefined}
+            disabled={item.is_active === false}
             className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-              added
+              item.is_active === false
+                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                : added
                 ? "bg-green-600 text-white"
                 : "bg-primary text-primary-foreground hover:bg-primary/80"
             }`}

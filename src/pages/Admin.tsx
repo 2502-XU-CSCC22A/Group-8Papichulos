@@ -326,6 +326,7 @@ export default function Admin() {
       price: parseFloat(editForm.price) || 0,
       image: editForm.image ?? "/placeholder.svg",
       category: editForm.category ?? "",
+      is_active: editForm.is_active ?? true,
     };
 
     if (isNewItem) {
@@ -377,6 +378,7 @@ export default function Admin() {
       price: "",
       image: "/placeholder.svg",
       category: defaultCat,
+      is_active: true,
     };
     setItems((p) => [draft, ...p]);
     setEditId(tempId);

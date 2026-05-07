@@ -21,7 +21,15 @@ const getAgeMinutes = (createdAt: string) => {
 const getAgeLabel = (mins: number) => {
   if (mins < 1) return "Just now";
   if (mins === 1) return "1 min ago";
-  return `${mins} min ago`;
+  if (mins < 60) return `${mins} min ago`;
+  
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) {
+    return `${hours} hr${hours > 1 ? 's' : ''} ago`;
+  }
+  
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
 };
 
 // warm = 10–19 min, urgent = 20+ min
@@ -211,6 +219,34 @@ export const OrderCard = ({
           </div>
         </div>
 
+        {/* GCash Thumbnail */}
+        {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(order.receipt_url, "_blank");
+            }}
+            title="View GCash Receipt"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              overflow: "hidden",
+              flexShrink: 0,
+              border: `1px solid ${C.line}`,
+              background: C.lift,
+              marginRight: 6,
+              cursor: "zoom-in"
+            }}
+          >
+            <img
+              src={order.receipt_url}
+              alt="Proof"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+        )}
+
         {/* Total + chevron */}
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           <div
@@ -297,12 +333,12 @@ export const OrderCard = ({
             <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
               Payment —{" "}
               <span style={{ color: C.mid, fontWeight: 500 }}>
-                {order.payment_method === "gcash" ? "GCash" : "Pay at Counter"}
+                {(order.payment_method === "gcash" || order.payment_method === "online") ? "GCash / Online" : "Pay at Counter"}
               </span>
             </div>
 
             {/* Inline GCash Receipt */}
-            {order.payment_method === "gcash" && order.receipt_url && (
+            {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
               <div style={{ marginBottom: 16 }}>
                 <Lbl t="GCash Receipt" />
                 <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>

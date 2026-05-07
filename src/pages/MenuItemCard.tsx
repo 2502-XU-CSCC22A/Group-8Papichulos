@@ -162,6 +162,52 @@ export const MenuItemCard = ({
             />
           </div>
 
+          <Lbl t="Availability Status" />
+          <div style={{ display: "flex", gap: 8, marginTop: -6 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setEditForm({ ...editForm, is_active: true });
+              }}
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: 10,
+                border: `1.5px solid ${(editForm.is_active ?? true) ? "#16A34A" : C.border}`,
+                background: (editForm.is_active ?? true) ? "#DCFCE7" : C.surface,
+                color: (editForm.is_active ?? true) ? "#15803D" : C.faint,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                transition: "all 0.2s"
+              }}
+            >
+              Active (In Stock)
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setEditForm({ ...editForm, is_active: false });
+              }}
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: 10,
+                border: `1.5px solid ${(editForm.is_active === false) ? "#DC2626" : C.border}`,
+                background: (editForm.is_active === false) ? "#FEE2E2" : C.surface,
+                color: (editForm.is_active === false) ? "#B91C1C" : C.faint,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                transition: "all 0.2s"
+              }}
+            >
+              Out of Stock
+            </button>
+          </div>
+
           <div style={{ display: "flex", gap: 10, paddingTop: 2 }}>
             <Btn v="ghost" onClick={onCancel} full sx={{ fontSize: 14 }}>
               Cancel
@@ -206,6 +252,8 @@ export const MenuItemCard = ({
             height: "100%",
             objectFit: "cover",
             display: "block",
+            opacity: item.is_active === false ? 0.5 : 1,
+            filter: item.is_active === false ? "grayscale(100%)" : "none",
           }}
         />
         <div
@@ -216,6 +264,31 @@ export const MenuItemCard = ({
               "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 55%)",
           }}
         />
+
+        {item.is_active === false && (
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.15)",
+            backdropFilter: "blur(2px)",
+          }}>
+            <span style={{
+              background: "#DC2626",
+              color: "white",
+              padding: "6px 14px",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase"
+            }}>
+              Out of Stock
+            </span>
+          </div>
+        )}
         <div style={{ position: "absolute", bottom: 10, left: 12, right: 12 }}>
           <span
             style={{
