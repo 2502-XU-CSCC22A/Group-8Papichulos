@@ -204,7 +204,7 @@ export const OrderCard = ({
               whiteSpace: "nowrap",
             }}
           >
-            {order.customer_name}
+            {order.customer_name?.split(" (ID:")[0]}
           </div>
           <div
             style={{
@@ -328,6 +328,16 @@ export const OrderCard = ({
                 })}
               </span>
             </div>
+
+            {/* Phone Number */}
+            {order.phone_number && (
+              <div style={{ fontSize: 13, color: C.faint, marginBottom: 8 }}>
+                Phone —{" "}
+                <span style={{ color: C.mid, fontWeight: 500 }}>
+                  {order.phone_number}
+                </span>
+              </div>
+            )}
 
             {/* Payment method */}
             <div style={{ fontSize: 13, color: C.faint, marginBottom: order.pickup_id ? 8 : 14 }}>

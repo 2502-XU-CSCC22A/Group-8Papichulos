@@ -109,6 +109,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
         {
           customer_name: name,
           table_number: tableNumber,
+          phone_number: tableNumber,
           total_price: finalPrice,
           payment_method: payment,
           receipt_url: receiptUrl,

@@ -128,7 +128,7 @@ const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: stri
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {order.customer_name}
+                  {order.customer_name?.split(" (ID:")[0]}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Pill status={order.status} />
@@ -248,6 +248,16 @@ const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: stri
                       </div>
                     ))}
                   </div>
+
+                  {/* Phone Number */}
+                  {order.phone_number && (
+                    <div style={{ fontSize: 13, color: C.faint, marginBottom: 8 }}>
+                      Phone —{" "}
+                      <span style={{ color: C.mid, fontWeight: 500 }}>
+                        {order.phone_number}
+                      </span>
+                    </div>
+                  )}
 
                   <div
                     style={{ fontSize: 13, color: C.faint, marginBottom: order.pickup_id ? 8 : 12 }}
