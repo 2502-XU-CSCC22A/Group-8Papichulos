@@ -32,14 +32,15 @@ interface CheckoutDrawerProps {
 const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
   const { totalPrice, clearCart, items } = useCart();
   const [name, setName] = useState("");
-  const [payment, setPayment] = useState("counter");
+  const [payment, setPayment] = useState("online");
   const [receipt, setReceipt] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pickupId, setPickupId] = useState("");
 
   // ── Read table number from URL ?table=X automatically ─────────────────────
   const urlTable =
     new URLSearchParams(window.location.search).get("table") ?? "";
-  const [tableNumber, setTableNumber] = useState(urlTable);
+  const [phoneNumber, setPhoneNumber] = useState(urlTable);
   const tableFromUrl = !!urlTable;
   const [qrTimestamp] = useState(Date.now());
   const [checkoutFee, setCheckoutFee] = useState<number>(0);
@@ -61,19 +62,24 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
     };
     if (open) {
       fetchFee();
+      // Generate Pickup ID
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let id = "";
+      for (let i = 0; i < 6; i++) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      setPickupId(`${id.slice(0, 3)}-${id.slice(3, 6)}`);
     }
   }, [open]);
 
   const finalPrice = totalPrice + checkoutFee;
 
-  // Array for numbers 1 to 10 (fallback if no URL param)
-  const tableOptions = Array.from({ length: 10 }, (_, i) => (i + 1).toString());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!tableNumber) {
-      toast.error("Please select a table number.");
+    if (!phoneNumber) {
+      toast.error("Please enter a Phone Number.");
       return;
     }
 
@@ -107,8 +113,8 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
 
       const { error: orderError } = await supabase.from("orders").insert([
         {
-          customer_name: name,
-          table_number: tableNumber,
+          customer_name: `${name} (ID: ${pickupId})`,
+          table_number: phoneNumber,
           total_price: finalPrice,
           payment_method: payment,
           receipt_url: receiptUrl,
@@ -142,88 +148,56 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
           className="flex-1 overflow-y-auto px-6 space-y-6"
         >
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Your Name</Label>
-                <Input
-                  id="name"
-                  placeholder="Juan D."
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                  className="rounded-xl border-black/10 focus:border-black"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Your Name</Label>
+              <Input
+                id="name"
+                placeholder="Juan D."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={isSubmitting}
+                className="rounded-xl border-black/10 focus:border-black"
+              />
+            </div>
 
-              {/* ── Table number — auto from QR or manual select ── */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* ── Phone Number ── */}
               <div className="space-y-2">
-                <Label htmlFor="table">Table #</Label>
+                <Label htmlFor="phone">Phone Number</Label>
                 {tableFromUrl ? (
                   // Locked — came from QR code scan
                   <div className="flex items-center gap-2 rounded-xl border border-black bg-black text-white px-4 py-2.5 text-sm font-semibold">
-                    <span>Table {tableNumber}</span>
+                    <span>Phone Number: {phoneNumber}</span>
                     <span className="ml-auto text-xs font-normal opacity-60">
                       via QR
                     </span>
                   </div>
                 ) : (
-                  // Manual select — no QR used
-                  <Select
-                    value={tableNumber}
-                    onValueChange={setTableNumber}
-                    disabled={isSubmitting}
+                  // Manual input
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="e.g. 09123456789"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     required
-                  >
-                    <SelectTrigger className="rounded-xl border-black/10 focus:border-black">
-                      <SelectValue placeholder="Select table" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {tableOptions.map((num) => (
-                        <SelectItem key={num} value={num}>
-                          Table {num}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    disabled={isSubmitting}
+                    className="rounded-xl border-black/10 focus:border-black"
+                  />
                 )}
+              </div>
+
+              {/* ── Pickup ID ── */}
+              <div className="space-y-2">
+                <Label>Pickup ID</Label>
+                <div className="flex h-10 w-full items-center justify-center rounded-xl border border-dashed border-gray-400 bg-gray-50 text-base font-mono font-bold tracking-widest text-black">
+                  {pickupId}
+                </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold text-black">
-                Payment Method
-              </Label>
-              <RadioGroup
-                value={payment}
-                onValueChange={setPayment}
-                disabled={isSubmitting}
-                className="grid grid-cols-1 gap-2"
-              >
-                <div
-                  className={`flex items-center gap-3 rounded-xl border p-4 transition-all ${payment === "counter" ? "border-black bg-black/5" : "border-gray-200"}`}
-                >
-                  <RadioGroupItem value="counter" id="counter" />
-                  <Label
-                    htmlFor="counter"
-                    className="cursor-pointer flex-1 font-medium text-black"
-                  >
-                    Pay at Counter
-                  </Label>
-                </div>
-                <div
-                  className={`flex items-center gap-3 rounded-xl border p-4 transition-all ${payment === "online" ? "border-black bg-black/5" : "border-gray-200"}`}
-                >
-                  <RadioGroupItem value="online" id="online" />
-                  <Label
-                    htmlFor="online"
-                    className="cursor-pointer flex-1 font-medium text-blue-600"
-                  >
-                    GCash / Online
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+
 
             {payment === "online" && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-4 rounded-2xl bg-gray-50 p-4 border border-dashed border-gray-300 text-black">
