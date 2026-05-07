@@ -119,6 +119,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
         {
           customer_name: (!tableFromUrl && pickupId) ? `${name} (ID: ${pickupId})` : name,
           table_number: phoneNumber,
+          phone_number: phoneNumber,
           total_price: finalPrice,
           payment_method: payment,
           receipt_url: receiptUrl,
