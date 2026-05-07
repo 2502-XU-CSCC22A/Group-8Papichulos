@@ -99,6 +99,7 @@ export const OrderCard = ({
   const isCompleted = status === "completed";
   const isCancelled = status === "cancelled";
   const isDone = isCompleted || isCancelled;
+  const isPickup = order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
   // Derive border urgency for the card itself
   const [mins, setMins] = useState(() => getAgeMinutes(order.created_at));
@@ -145,10 +146,11 @@ export const OrderCard = ({
           cursor: "pointer",
         }}
       >
-        {/* Table badge */}
+        {/* Table/Pickup badge */}
         <div
           style={{
-            width: 46,
+            minWidth: 46,
+            padding: isPickup ? "0 8px" : 0,
             height: 46,
             borderRadius: 12,
             flexShrink: 0,
@@ -171,13 +173,14 @@ export const OrderCard = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 18,
-            fontWeight: 500,
-            letterSpacing: "-0.02em",
+            fontSize: isPickup ? 11 : 18,
+            fontWeight: isPickup ? 700 : 500,
+            letterSpacing: isPickup ? "0.03em" : "-0.02em",
+            textTransform: isPickup ? "uppercase" : "none",
             transition: "background 0.3s, color 0.3s",
           }}
         >
-          {order.table_number}
+          {isPickup ? "PICKUP" : order.table_number}
         </div>
 
         {/* Name + status + age */}
@@ -298,6 +301,27 @@ export const OrderCard = ({
               </span>
             </div>
 
+            {/* Inline GCash Receipt */}
+            {order.payment_method === "gcash" && order.receipt_url && (
+              <div style={{ marginBottom: 16 }}>
+                <Lbl t="GCash Receipt" />
+                <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
+                  <img 
+                    src={order.receipt_url} 
+                    alt="GCash Receipt" 
+                    style={{ 
+                      width: "100%", 
+                      maxWidth: 200, 
+                      borderRadius: 8, 
+                      border: `1px solid ${C.line}`,
+                      objectFit: "contain",
+                      background: C.lift
+                    }} 
+                  />
+                </a>
+              </div>
+            )}
+
             {/* ── Action buttons by status ── */}
 
             {/* PENDING → Start Preparing + Cancel */}
@@ -327,15 +351,6 @@ export const OrderCard = ({
             {/* PREPARING → Mark as Served */}
             {status === "preparing" && (
               <div style={{ display: "flex", gap: 8 }}>
-                {order.receipt_url && (
-                  <Btn
-                    v="outline"
-                    onClick={() => window.open(order.receipt_url, "_blank")}
-                    sx={{ fontSize: 14, padding: "11px 14px" }}
-                  >
-                    <Receipt size={14} strokeWidth={1.5} /> Receipt
-                  </Btn>
-                )}
                 <Btn
                   onClick={() => onUpdateStatus(order.id, "completed")}
                   sx={{ flex: 1, fontSize: 14 }}
