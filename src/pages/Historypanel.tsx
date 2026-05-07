@@ -285,17 +285,17 @@ const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: stri
                     <div style={{ marginBottom: 12 }}>
                       <Lbl t="GCash Receipt" />
                       <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
-                        <img 
-                          src={order.receipt_url} 
-                          alt="GCash Receipt" 
-                          style={{ 
-                            width: "100%", 
-                            maxWidth: 200, 
-                            borderRadius: 8, 
+                        <img
+                          src={order.receipt_url}
+                          alt="GCash Receipt"
+                          style={{
+                            width: "100%",
+                            maxWidth: 200,
+                            borderRadius: 8,
                             border: `1px solid ${C.line}`,
                             objectFit: "contain",
                             background: C.lift
-                          }} 
+                          }}
                         />
                       </a>
                     </div>
@@ -443,14 +443,14 @@ export const HistoryPanel = ({
   const browseLabel =
     mode === "lookup"
       ? new Date(
-          Number(selectedDate.split("-")[0]),
-          Number(selectedDate.split("-")[1]) - 1,
-          Number(selectedDate.split("-")[2]),
-        ).toLocaleDateString("en-PH", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
+        Number(selectedDate.split("-")[0]),
+        Number(selectedDate.split("-")[1]) - 1,
+        Number(selectedDate.split("-")[2]),
+      ).toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
       : "Browse by Date";
 
   // ── Delete old orders ──────────────────────────────────────────────────────
@@ -784,9 +784,9 @@ export const HistoryPanel = ({
             </button>
           ))}
         </div>
-        
+
         <div style={{ width: 1, background: C.border, margin: "2px 0", flexShrink: 0 }} />
-        
+
         <div style={{ display: "flex", gap: 7 }}>
           {["all", "pickup", "dine-in"].map((tf) => (
             <button

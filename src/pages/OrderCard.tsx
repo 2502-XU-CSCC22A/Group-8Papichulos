@@ -22,12 +22,12 @@ const getAgeLabel = (mins: number) => {
   if (mins < 1) return "Just now";
   if (mins === 1) return "1 min ago";
   if (mins < 60) return `${mins} min ago`;
-  
+
   const hours = Math.floor(mins / 60);
   if (hours < 24) {
     return `${hours} hr${hours > 1 ? 's' : ''} ago`;
   }
-  
+
   const days = Math.floor(hours / 24);
   return `${days} day${days > 1 ? 's' : ''} ago`;
 };
@@ -362,17 +362,17 @@ export const OrderCard = ({
               <div style={{ marginBottom: 16 }}>
                 <Lbl t="GCash Receipt" />
                 <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
-                  <img 
-                    src={order.receipt_url} 
-                    alt="GCash Receipt" 
-                    style={{ 
-                      width: "100%", 
-                      maxWidth: 200, 
-                      borderRadius: 8, 
+                  <img
+                    src={order.receipt_url}
+                    alt="GCash Receipt"
+                    style={{
+                      width: "100%",
+                      maxWidth: 200,
+                      borderRadius: 8,
                       border: `1px solid ${C.line}`,
                       objectFit: "contain",
                       background: C.lift
-                    }} 
+                    }}
                   />
                 </a>
               </div>

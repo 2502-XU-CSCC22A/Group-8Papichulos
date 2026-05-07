@@ -53,7 +53,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
         const text = await data.text();
         const json = JSON.parse(text);
         if (json.fee !== undefined) {
-           setCheckoutFee(parseFloat(json.fee) || 0);
+          setCheckoutFee(parseFloat(json.fee) || 0);
         }
       } catch (err) {
         console.error("Failed to load checkout fee:", err);
@@ -109,7 +109,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
         {
           customer_name: name,
           table_number: tableNumber,
-          phone_number: tableNumber,
+          phone_number: null,
           total_price: finalPrice,
           payment_method: payment,
           receipt_url: receiptUrl,
