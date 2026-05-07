@@ -30,7 +30,7 @@ interface CheckoutDrawerProps {
 }
 
 const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
-  const { totalPrice, clearCart, items } = useCart();
+  const { totalPrice, clearCart, items, userId } = useCart();
   const [name, setName] = useState("");
   const [payment, setPayment] = useState("online");
   const [receipt, setReceipt] = useState<File | null>(null);
@@ -54,7 +54,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
         const text = await data.text();
         const json = JSON.parse(text);
         if (json.fee !== undefined) {
-           setCheckoutFee(parseFloat(json.fee) || 0);
+          setCheckoutFee(parseFloat(json.fee) || 0);
         }
       } catch (err) {
         console.error("Failed to load checkout fee:", err);
@@ -62,13 +62,17 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
     };
     if (open) {
       fetchFee();
-      // Generate Pickup ID
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let id = "";
-      for (let i = 0; i < 6; i++) {
-        id += chars.charAt(Math.floor(Math.random() * chars.length));
+      // Generate Pickup ID only if it's NOT a table order
+      if (!tableFromUrl) {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let id = "";
+        for (let i = 0; i < 6; i++) {
+          id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setPickupId(`${id.slice(0, 3)}-${id.slice(3, 6)}`);
+      } else {
+        setPickupId("");
       }
-      setPickupId(`${id.slice(0, 3)}-${id.slice(3, 6)}`);
     }
   }, [open]);
 
@@ -79,7 +83,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
     e.preventDefault();
 
     if (!phoneNumber) {
-      toast.error("Please enter a Phone Number.");
+      toast.error(tableFromUrl ? "Please select a Table Number." : "Please enter a Phone Number.");
       return;
     }
 
@@ -113,13 +117,16 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
 
       const { error: orderError } = await supabase.from("orders").insert([
         {
-          customer_name: `${name} (ID: ${pickupId})`,
-          table_number: phoneNumber,
+          customer_name: name,
+          table_number: null,
+          phone_number: phoneNumber,
+          user_id: userId,
           total_price: finalPrice,
           payment_method: payment,
           receipt_url: receiptUrl,
           status: "pending",
           order_items: items,
+          pickup_id: (!tableFromUrl && pickupId) ? pickupId : null,
         },
       ]);
 
@@ -164,11 +171,11 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
             <div className="grid grid-cols-2 gap-4">
               {/* ── Phone Number ── */}
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">{tableFromUrl ? "Table Number" : "Phone Number"}</Label>
                 {tableFromUrl ? (
                   // Locked — came from QR code scan
                   <div className="flex items-center gap-2 rounded-xl border border-black bg-black text-white px-4 py-2.5 text-sm font-semibold">
-                    <span>Phone Number: {phoneNumber}</span>
+                    <span>Table {phoneNumber}</span>
                     <span className="ml-auto text-xs font-normal opacity-60">
                       via QR
                     </span>
@@ -188,13 +195,15 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
                 )}
               </div>
 
-              {/* ── Pickup ID ── */}
-              <div className="space-y-2">
-                <Label>Pickup ID</Label>
-                <div className="flex h-10 w-full items-center justify-center rounded-xl border border-dashed border-gray-400 bg-gray-50 text-base font-mono font-bold tracking-widest text-black">
-                  {pickupId}
+              {/* ── Pickup ID (Only for Pickup Orders) ── */}
+              {!tableFromUrl && (
+                <div className="space-y-2">
+                  <Label>Pickup ID</Label>
+                  <div className="flex h-10 w-full items-center justify-center rounded-xl border border-dashed border-gray-400 bg-gray-50 text-base font-mono font-bold tracking-widest text-black">
+                    {pickupId}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
 
