@@ -54,7 +54,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
         const text = await data.text();
         const json = JSON.parse(text);
         if (json.fee !== undefined) {
-           setCheckoutFee(parseFloat(json.fee) || 0);
+          setCheckoutFee(parseFloat(json.fee) || 0);
         }
       } catch (err) {
         console.error("Failed to load checkout fee:", err);
@@ -117,8 +117,8 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
 
       const { error: orderError } = await supabase.from("orders").insert([
         {
-          customer_name: (!tableFromUrl && pickupId) ? `${name} (ID: ${pickupId})` : name,
-          table_number: phoneNumber,
+          customer_name: name,
+          table_number: null,
           phone_number: phoneNumber,
           user_id: userId,
           total_price: finalPrice,
