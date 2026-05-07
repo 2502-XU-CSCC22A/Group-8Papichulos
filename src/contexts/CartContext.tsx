@@ -7,6 +7,7 @@ export interface MenuItem {
   price: number;
   image: string;
   category: string;
+  is_active?: boolean;
 }
 
 export interface CartItem extends MenuItem {

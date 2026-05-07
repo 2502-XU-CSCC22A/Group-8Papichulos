@@ -38,10 +38,17 @@ const fmtDate = (key: string) => {
 };
 
 // ── Order list ────────────────────────────────────────────────────────────────
-const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
+const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: string; typeFilter: string }) => {
   const [openId, setOpenId] = useState<string | null>(null);
-  const shown =
+  let shown =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);
+
+  if (typeFilter !== "all") {
+    shown = shown.filter((o) => {
+      const isPickup = !!o.pickup_id || o.customer_name?.includes("(ID:") || o.table_number?.length > 3;
+      return typeFilter === "pickup" ? isPickup : !isPickup;
+    });
+  }
 
   if (shown.length === 0) {
     return (
@@ -64,6 +71,7 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
         const isOpen = openId === order.id;
         const isCompleted = order.status === "completed";
         const isCancelled = order.status === "cancelled";
+        const isPickup = !!order.pickup_id || order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
         return (
           <div
@@ -92,7 +100,8 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
             >
               <div
                 style={{
-                  width: 42,
+                  minWidth: 42,
+                  padding: isPickup ? "0 8px" : 0,
                   height: 42,
                   borderRadius: 10,
                   flexShrink: 0,
@@ -101,11 +110,12 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 16,
-                  fontWeight: 500,
+                  fontSize: isPickup ? 11 : 16,
+                  fontWeight: isPickup ? 700 : 500,
+                  letterSpacing: isPickup ? "0.03em" : "normal",
                 }}
               >
-                {order.table_number}
+                {isPickup ? "PICKUP" : order.table_number}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -120,7 +130,7 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {order.customer_name}
+                  {order.customer_name?.split(" (ID:")[0]}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Pill status={order.status} />
@@ -141,6 +151,34 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                   </span>
                 </div>
               </div>
+
+              {/* GCash Thumbnail */}
+              {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(order.receipt_url, "_blank");
+                  }}
+                  title="View GCash Receipt"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 8,
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    border: `1px solid ${C.line}`,
+                    background: C.lift,
+                    marginRight: 6,
+                    cursor: "zoom-in"
+                  }}
+                >
+                  <img
+                    src={order.receipt_url}
+                    alt="Proof"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                </div>
+              )}
 
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div
@@ -213,40 +251,61 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                     ))}
                   </div>
 
+                  {/* Phone Number */}
+                  {order.phone_number && (
+                    <div style={{ fontSize: 13, color: C.faint, marginBottom: 8 }}>
+                      Phone —{" "}
+                      <span style={{ color: C.mid, fontWeight: 500 }}>
+                        {order.phone_number}
+                      </span>
+                    </div>
+                  )}
+
                   <div
-                    style={{ fontSize: 13, color: C.faint, marginBottom: 12 }}
+                    style={{ fontSize: 13, color: C.faint, marginBottom: order.pickup_id ? 8 : 12 }}
                   >
                     Payment —{" "}
                     <span style={{ color: C.mid, fontWeight: 500 }}>
-                      {order.payment_method === "gcash"
-                        ? "GCash"
+                      {(order.payment_method === "gcash" || order.payment_method === "online")
+                        ? "GCash / Online"
                         : "Pay at Counter"}
                     </span>
                   </div>
 
+                  {/* Pickup ID */}
+                  {order.pickup_id && (
+                    <div style={{ fontSize: 13, color: C.faint, marginBottom: 12 }}>
+                      Pickup ID —{" "}
+                      <span style={{ color: C.ink, fontWeight: 700, letterSpacing: "0.03em" }}>
+                        {order.pickup_id}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Inline GCash Receipt */}
+                  {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
+                    <div style={{ marginBottom: 12 }}>
+                      <Lbl t="GCash Receipt" />
+                      <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
+                        <img
+                          src={order.receipt_url}
+                          alt="GCash Receipt"
+                          style={{
+                            width: "100%",
+                            maxWidth: 200,
+                            borderRadius: 8,
+                            border: `1px solid ${C.line}`,
+                            objectFit: "contain",
+                            background: C.lift
+                          }}
+                        />
+                      </a>
+                    </div>
+                  )}
+
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
-                    {order.receipt_url && (
-                      <button
-                        onClick={() => window.open(order.receipt_url, "_blank")}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "9px 14px",
-                          borderRadius: 9,
-                          fontSize: 13,
-                          fontWeight: 500,
-                          background: C.surface,
-                          border: `1.5px solid ${C.border}`,
-                          color: C.mid,
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Receipt size={13} strokeWidth={1.5} /> Receipt
-                      </button>
-                    )}
                     <div
                       style={{
                         display: "flex",
@@ -350,6 +409,7 @@ export const HistoryPanel = ({
   onOrdersChange: (updated: any[]) => void;
 }) => {
   const [filter, setFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [selectedDate, setSelectedDate] = useState<string>(todayKey());
   const [mode, setMode] = useState<"today" | "lookup">("today");
   const [exportMode, setExportMode] = useState<"day" | "month">("day");
@@ -421,14 +481,14 @@ const browseLabel = isMonthMode
       : "Select Month"
     : mode === "lookup"
       ? new Date(
-          Number(selectedDate.split("-")[0]),
-          Number(selectedDate.split("-")[1]) - 1,
-          Number(selectedDate.split("-")[2]),
-        ).toLocaleDateString("en-PH", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })
+        Number(selectedDate.split("-")[0]),
+        Number(selectedDate.split("-")[1]) - 1,
+        Number(selectedDate.split("-")[2]),
+      ).toLocaleDateString("en-PH", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
       : "Browse by Date";
 
   // ── Export to Excel ────────────────────────────────────────────────────────
@@ -866,32 +926,59 @@ const browseLabel = isMonthMode
       <div
         style={{
           display: "flex",
-          gap: 7,
+          gap: 16,
           marginBottom: 16,
           overflowX: "auto",
           paddingBottom: 2,
         }}
       >
-        {HISTORY_FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            style={{
-              flexShrink: 0,
-              padding: "8px 16px",
-              borderRadius: 99,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-              transition: "all 0.15s",
-              border: `1.5px solid ${filter === f ? C.ink : C.border}`,
-              background: filter === f ? C.ink : C.surface,
-              color: filter === f ? C.white : C.mid,
-            }}
-          >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
+        <div style={{ display: "flex", gap: 7 }}>
+          {HISTORY_FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                flexShrink: 0,
+                padding: "8px 16px",
+                borderRadius: 99,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                border: `1.5px solid ${filter === f ? C.ink : C.border}`,
+                background: filter === f ? C.ink : C.surface,
+                color: filter === f ? C.white : C.mid,
+              }}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ width: 1, background: C.border, margin: "2px 0", flexShrink: 0 }} />
+
+        <div style={{ display: "flex", gap: 7 }}>
+          {["all", "pickup", "dine-in"].map((tf) => (
+            <button
+              key={tf}
+              onClick={() => setTypeFilter(tf)}
+              style={{
+                flexShrink: 0,
+                padding: "8px 16px",
+                borderRadius: 99,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                border: `1.5px solid ${typeFilter === tf ? C.ink : C.border}`,
+                background: typeFilter === tf ? C.ink : C.surface,
+                color: typeFilter === tf ? C.white : C.mid,
+              }}
+            >
+              {tf === "all" ? "All Types" : tf === "pickup" ? "Pickup Only" : "Dine-in Only"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Order list ── */}

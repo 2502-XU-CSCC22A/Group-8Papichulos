@@ -21,7 +21,15 @@ const getAgeMinutes = (createdAt: string) => {
 const getAgeLabel = (mins: number) => {
   if (mins < 1) return "Just now";
   if (mins === 1) return "1 min ago";
-  return `${mins} min ago`;
+  if (mins < 60) return `${mins} min ago`;
+
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) {
+    return `${hours} hr${hours > 1 ? 's' : ''} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
 };
 
 // warm = 10–19 min, urgent = 20+ min
@@ -99,6 +107,7 @@ export const OrderCard = ({
   const isCompleted = status === "completed";
   const isCancelled = status === "cancelled";
   const isDone = isCompleted || isCancelled;
+  const isPickup = !!order.pickup_id || order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
   // Derive border urgency for the card itself
   const [mins, setMins] = useState(() => getAgeMinutes(order.created_at));
@@ -145,10 +154,11 @@ export const OrderCard = ({
           cursor: "pointer",
         }}
       >
-        {/* Table badge */}
+        {/* Table/Pickup badge */}
         <div
           style={{
-            width: 46,
+            minWidth: 46,
+            padding: isPickup ? "0 8px" : 0,
             height: 46,
             borderRadius: 12,
             flexShrink: 0,
@@ -171,13 +181,14 @@ export const OrderCard = ({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 18,
-            fontWeight: 500,
-            letterSpacing: "-0.02em",
+            fontSize: isPickup ? 11 : 18,
+            fontWeight: isPickup ? 700 : 500,
+            letterSpacing: isPickup ? "0.03em" : "-0.02em",
+            textTransform: isPickup ? "uppercase" : "none",
             transition: "background 0.3s, color 0.3s",
           }}
         >
-          {order.table_number}
+          {isPickup ? "PICKUP" : order.table_number}
         </div>
 
         {/* Name + status + age */}
@@ -193,7 +204,7 @@ export const OrderCard = ({
               whiteSpace: "nowrap",
             }}
           >
-            {order.customer_name}
+            {order.customer_name?.split(" (ID:")[0]}
           </div>
           <div
             style={{
@@ -207,6 +218,34 @@ export const OrderCard = ({
             <AgeBadge createdAt={order.created_at} status={status} />
           </div>
         </div>
+
+        {/* GCash Thumbnail */}
+        {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(order.receipt_url, "_blank");
+            }}
+            title="View GCash Receipt"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              overflow: "hidden",
+              flexShrink: 0,
+              border: `1px solid ${C.line}`,
+              background: C.lift,
+              marginRight: 6,
+              cursor: "zoom-in"
+            }}
+          >
+            <img
+              src={order.receipt_url}
+              alt="Proof"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+        )}
 
         {/* Total + chevron */}
         <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -290,13 +329,54 @@ export const OrderCard = ({
               </span>
             </div>
 
+            {/* Phone Number */}
+            {order.phone_number && (
+              <div style={{ fontSize: 13, color: C.faint, marginBottom: 8 }}>
+                Phone —{" "}
+                <span style={{ color: C.mid, fontWeight: 500 }}>
+                  {order.phone_number}
+                </span>
+              </div>
+            )}
+
             {/* Payment method */}
-            <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: C.faint, marginBottom: order.pickup_id ? 8 : 14 }}>
               Payment —{" "}
               <span style={{ color: C.mid, fontWeight: 500 }}>
-                {order.payment_method === "gcash" ? "GCash" : "Pay at Counter"}
+                {(order.payment_method === "gcash" || order.payment_method === "online") ? "GCash / Online" : "Pay at Counter"}
               </span>
             </div>
+
+            {/* Pickup ID */}
+            {order.pickup_id && (
+              <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
+                Pickup ID —{" "}
+                <span style={{ color: C.ink, fontWeight: 700, letterSpacing: "0.03em" }}>
+                  {order.pickup_id}
+                </span>
+              </div>
+            )}
+
+            {/* Inline GCash Receipt */}
+            {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
+              <div style={{ marginBottom: 16 }}>
+                <Lbl t="GCash Receipt" />
+                <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
+                  <img
+                    src={order.receipt_url}
+                    alt="GCash Receipt"
+                    style={{
+                      width: "100%",
+                      maxWidth: 200,
+                      borderRadius: 8,
+                      border: `1px solid ${C.line}`,
+                      objectFit: "contain",
+                      background: C.lift
+                    }}
+                  />
+                </a>
+              </div>
+            )}
 
             {/* ── Action buttons by status ── */}
 
@@ -327,15 +407,6 @@ export const OrderCard = ({
             {/* PREPARING → Mark as Served */}
             {status === "preparing" && (
               <div style={{ display: "flex", gap: 8 }}>
-                {order.receipt_url && (
-                  <Btn
-                    v="outline"
-                    onClick={() => window.open(order.receipt_url, "_blank")}
-                    sx={{ fontSize: 14, padding: "11px 14px" }}
-                  >
-                    <Receipt size={14} strokeWidth={1.5} /> Receipt
-                  </Btn>
-                )}
                 <Btn
                   onClick={() => onUpdateStatus(order.id, "completed")}
                   sx={{ flex: 1, fontSize: 14 }}
