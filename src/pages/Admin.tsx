@@ -113,6 +113,7 @@ export default function Admin() {
   }, []);
   const [tab, setTab] = useState<TabKey>("orders");
   const [filter, setFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [orders, setOrders] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -406,10 +407,17 @@ export default function Admin() {
     (o) => o.status === "completed" || o.status === "cancelled",
   );
   const pending = orders.filter((o) => o.status === "pending").length;
-  const shown =
+  let shown =
     filter === "all"
       ? activeOrders
       : activeOrders.filter((o) => o.status === filter);
+
+  if (typeFilter !== "all") {
+    shown = shown.filter((o) => {
+      const isPickup = o.customer_name?.includes("(ID:") || o.table_number?.length > 3;
+      return typeFilter === "pickup" ? isPickup : !isPickup;
+    });
+  }
 
   return (
     <div
@@ -536,7 +544,7 @@ export default function Admin() {
                 className="adm-filter-row"
                 style={{
                   display: "flex",
-                  gap: 7,
+                  gap: 16,
                   overflowX: "auto",
                   WebkitOverflowScrolling: "touch",
                   marginBottom: 18,
@@ -544,26 +552,53 @@ export default function Admin() {
                   flexWrap: "wrap",
                 }}
               >
-                {ORDER_FILTERS.map((fl) => (
-                  <button
-                    key={fl}
-                    onClick={() => setFilter(fl)}
-                    style={{
-                      flexShrink: 0,
-                      padding: "8px 16px",
-                      borderRadius: 99,
-                      fontSize: 13,
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                      border: `1.5px solid ${filter === fl ? C.ink : C.border}`,
-                      background: filter === fl ? C.ink : C.surface,
-                      color: filter === fl ? C.white : C.mid,
-                    }}
-                  >
-                    {fl.charAt(0).toUpperCase() + fl.slice(1)}
-                  </button>
-                ))}
+                <div style={{ display: "flex", gap: 7 }}>
+                  {ORDER_FILTERS.map((fl) => (
+                    <button
+                      key={fl}
+                      onClick={() => setFilter(fl)}
+                      style={{
+                        flexShrink: 0,
+                        padding: "8px 16px",
+                        borderRadius: 99,
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        border: `1.5px solid ${filter === fl ? C.ink : C.border}`,
+                        background: filter === fl ? C.ink : C.surface,
+                        color: filter === fl ? C.white : C.mid,
+                      }}
+                    >
+                      {fl.charAt(0).toUpperCase() + fl.slice(1)}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ width: 1, background: C.border, margin: "2px 0", flexShrink: 0 }} />
+
+                <div style={{ display: "flex", gap: 7 }}>
+                  {["all", "pickup", "dine-in"].map((tf) => (
+                    <button
+                      key={tf}
+                      onClick={() => setTypeFilter(tf)}
+                      style={{
+                        flexShrink: 0,
+                        padding: "8px 16px",
+                        borderRadius: 99,
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        border: `1.5px solid ${typeFilter === tf ? C.ink : C.border}`,
+                        background: typeFilter === tf ? C.ink : C.surface,
+                        color: typeFilter === tf ? C.white : C.mid,
+                      }}
+                    >
+                      {tf === "all" ? "All Types" : tf === "pickup" ? "Pickup Only" : "Dine-in Only"}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

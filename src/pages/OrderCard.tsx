@@ -107,7 +107,7 @@ export const OrderCard = ({
   const isCompleted = status === "completed";
   const isCancelled = status === "cancelled";
   const isDone = isCompleted || isCancelled;
-  const isPickup = order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
+  const isPickup = !!order.pickup_id || order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
   // Derive border urgency for the card itself
   const [mins, setMins] = useState(() => getAgeMinutes(order.created_at));
@@ -330,12 +330,22 @@ export const OrderCard = ({
             </div>
 
             {/* Payment method */}
-            <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: C.faint, marginBottom: order.pickup_id ? 8 : 14 }}>
               Payment —{" "}
               <span style={{ color: C.mid, fontWeight: 500 }}>
                 {(order.payment_method === "gcash" || order.payment_method === "online") ? "GCash / Online" : "Pay at Counter"}
               </span>
             </div>
+
+            {/* Pickup ID */}
+            {order.pickup_id && (
+              <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
+                Pickup ID —{" "}
+                <span style={{ color: C.ink, fontWeight: 700, letterSpacing: "0.03em" }}>
+                  {order.pickup_id}
+                </span>
+              </div>
+            )}
 
             {/* Inline GCash Receipt */}
             {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (

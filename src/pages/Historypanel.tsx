@@ -36,10 +36,17 @@ const fmtDate = (key: string) => {
 };
 
 // ── Order list ────────────────────────────────────────────────────────────────
-const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
+const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: string; typeFilter: string }) => {
   const [openId, setOpenId] = useState<string | null>(null);
-  const shown =
+  let shown =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);
+
+  if (typeFilter !== "all") {
+    shown = shown.filter((o) => {
+      const isPickup = !!o.pickup_id || o.customer_name?.includes("(ID:") || o.table_number?.length > 3;
+      return typeFilter === "pickup" ? isPickup : !isPickup;
+    });
+  }
 
   if (shown.length === 0) {
     return (
@@ -62,7 +69,7 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
         const isOpen = openId === order.id;
         const isCompleted = order.status === "completed";
         const isCancelled = order.status === "cancelled";
-        const isPickup = order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
+        const isPickup = !!order.pickup_id || order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
         return (
           <div
@@ -243,7 +250,7 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                   </div>
 
                   <div
-                    style={{ fontSize: 13, color: C.faint, marginBottom: 12 }}
+                    style={{ fontSize: 13, color: C.faint, marginBottom: order.pickup_id ? 8 : 12 }}
                   >
                     Payment —{" "}
                     <span style={{ color: C.mid, fontWeight: 500 }}>
@@ -252,6 +259,16 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                         : "Pay at Counter"}
                     </span>
                   </div>
+
+                  {/* Pickup ID */}
+                  {order.pickup_id && (
+                    <div style={{ fontSize: 13, color: C.faint, marginBottom: 12 }}>
+                      Pickup ID —{" "}
+                      <span style={{ color: C.ink, fontWeight: 700, letterSpacing: "0.03em" }}>
+                        {order.pickup_id}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Inline GCash Receipt */}
                   {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
@@ -380,6 +397,7 @@ export const HistoryPanel = ({
   onOrdersChange: (updated: any[]) => void;
 }) => {
   const [filter, setFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [selectedDate, setSelectedDate] = useState<string>(todayKey());
   const [mode, setMode] = useState<"today" | "lookup">("today");
   const [showConfirm, setShowConfirm] = useState(false);
@@ -728,36 +746,63 @@ export const HistoryPanel = ({
       <div
         style={{
           display: "flex",
-          gap: 7,
+          gap: 16,
           marginBottom: 16,
           overflowX: "auto",
           paddingBottom: 2,
         }}
       >
-        {HISTORY_FILTERS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            style={{
-              flexShrink: 0,
-              padding: "8px 16px",
-              borderRadius: 99,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-              transition: "all 0.15s",
-              border: `1.5px solid ${filter === f ? C.ink : C.border}`,
-              background: filter === f ? C.ink : C.surface,
-              color: filter === f ? C.white : C.mid,
-            }}
-          >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
+        <div style={{ display: "flex", gap: 7 }}>
+          {HISTORY_FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                flexShrink: 0,
+                padding: "8px 16px",
+                borderRadius: 99,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                border: `1.5px solid ${filter === f ? C.ink : C.border}`,
+                background: filter === f ? C.ink : C.surface,
+                color: filter === f ? C.white : C.mid,
+              }}
+            >
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+        
+        <div style={{ width: 1, background: C.border, margin: "2px 0", flexShrink: 0 }} />
+        
+        <div style={{ display: "flex", gap: 7 }}>
+          {["all", "pickup", "dine-in"].map((tf) => (
+            <button
+              key={tf}
+              onClick={() => setTypeFilter(tf)}
+              style={{
+                flexShrink: 0,
+                padding: "8px 16px",
+                borderRadius: 99,
+                fontSize: 13,
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                border: `1.5px solid ${typeFilter === tf ? C.ink : C.border}`,
+                background: typeFilter === tf ? C.ink : C.surface,
+                color: typeFilter === tf ? C.white : C.mid,
+              }}
+            >
+              {tf === "all" ? "All Types" : tf === "pickup" ? "Pickup Only" : "Dine-in Only"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* ── Order list ── */}
-      <OrderList orders={dayOrders} filter={filter} />
+      <OrderList orders={dayOrders} filter={filter} typeFilter={typeFilter} />
     </div>
   );
 };
