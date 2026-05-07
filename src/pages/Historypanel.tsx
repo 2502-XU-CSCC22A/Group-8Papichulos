@@ -64,6 +64,7 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
         const isOpen = openId === order.id;
         const isCompleted = order.status === "completed";
         const isCancelled = order.status === "cancelled";
+        const isPickup = order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
         return (
           <div
@@ -92,7 +93,8 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
             >
               <div
                 style={{
-                  width: 42,
+                  minWidth: 42,
+                  padding: isPickup ? "0 8px" : 0,
                   height: 42,
                   borderRadius: 10,
                   flexShrink: 0,
@@ -101,11 +103,12 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 16,
-                  fontWeight: 500,
+                  fontSize: isPickup ? 11 : 16,
+                  fontWeight: isPickup ? 700 : 500,
+                  letterSpacing: isPickup ? "0.03em" : "normal",
                 }}
               >
-                {order.table_number}
+                {isPickup ? "PICKUP" : order.table_number}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -224,29 +227,30 @@ const OrderList = ({ orders, filter }: { orders: any[]; filter: string }) => {
                     </span>
                   </div>
 
+                  {/* Inline GCash Receipt */}
+                  {order.payment_method === "gcash" && order.receipt_url && (
+                    <div style={{ marginBottom: 12 }}>
+                      <Lbl t="GCash Receipt" />
+                      <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
+                        <img 
+                          src={order.receipt_url} 
+                          alt="GCash Receipt" 
+                          style={{ 
+                            width: "100%", 
+                            maxWidth: 200, 
+                            borderRadius: 8, 
+                            border: `1px solid ${C.line}`,
+                            objectFit: "contain",
+                            background: C.lift
+                          }} 
+                        />
+                      </a>
+                    </div>
+                  )}
+
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
-                    {order.receipt_url && (
-                      <button
-                        onClick={() => window.open(order.receipt_url, "_blank")}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "9px 14px",
-                          borderRadius: 9,
-                          fontSize: 13,
-                          fontWeight: 500,
-                          background: C.surface,
-                          border: `1.5px solid ${C.border}`,
-                          color: C.mid,
-                          cursor: "pointer",
-                        }}
-                      >
-                        <Receipt size={13} strokeWidth={1.5} /> Receipt
-                      </button>
-                    )}
                     <div
                       style={{
                         display: "flex",
