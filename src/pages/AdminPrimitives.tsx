@@ -116,4 +116,3 @@ export const Lbl = ({ t }: { t: string }) => (
 export const HR = ({ my = 0 }: { my?: number }) => (
   <div style={{ height: 1, background: C.line, margin: `${my}px 0` }} />
 );
-
