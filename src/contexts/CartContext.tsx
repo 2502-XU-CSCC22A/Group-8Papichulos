@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 export interface MenuItem {
   id: string;
@@ -25,8 +25,47 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const CART_STORAGE_KEY = "shopping_cart_data";
+const EXPIRY_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
+
+const getInitialCart = (): CartItem[] => {
+  if (typeof window === "undefined") return []; // Safety for SSR if any
+  try {
+    const stored = localStorage.getItem(CART_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      const now = new Date().getTime();
+      if (now - parsed.timestamp < EXPIRY_TIME) {
+        return parsed.items;
+      } else {
+        localStorage.removeItem(CART_STORAGE_KEY);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load cart from local storage", error);
+  }
+  return [];
+};
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(getInitialCart);
+
+  useEffect(() => {
+    try {
+      if (items.length > 0) {
+        const data = {
+          items,
+          timestamp: new Date().getTime(),
+        };
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(data));
+      } else {
+        // If cart is cleared, also clear it from storage
+        localStorage.removeItem(CART_STORAGE_KEY);
+      }
+    } catch (error) {
+      console.error("Failed to save cart to local storage", error);
+    }
+  }, [items]);
 
   const addItem = useCallback((item: MenuItem) => {
     setItems((prev) => {
