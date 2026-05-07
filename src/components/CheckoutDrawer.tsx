@@ -30,7 +30,7 @@ interface CheckoutDrawerProps {
 }
 
 const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
-  const { totalPrice, clearCart, items } = useCart();
+  const { totalPrice, clearCart, items, userId } = useCart();
   const [name, setName] = useState("");
   const [payment, setPayment] = useState("online");
   const [receipt, setReceipt] = useState<File | null>(null);
@@ -120,6 +120,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm }: CheckoutDrawerProps) => {
           customer_name: (!tableFromUrl && pickupId) ? `${name} (ID: ${pickupId})` : name,
           table_number: phoneNumber,
           phone_number: phoneNumber,
+          user_id: userId,
           total_price: finalPrice,
           payment_method: payment,
           receipt_url: receiptUrl,

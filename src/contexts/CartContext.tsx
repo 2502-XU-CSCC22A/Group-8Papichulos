@@ -22,12 +22,13 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  userId: string;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = "shopping_cart_data";
-const EXPIRY_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
+const USER_ID_KEY = "papicholos_user_id";
 
 const getInitialCart = (): CartItem[] => {
   if (typeof window === "undefined") return []; // Safety for SSR if any
@@ -35,12 +36,8 @@ const getInitialCart = (): CartItem[] => {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const now = new Date().getTime();
-      if (now - parsed.timestamp < EXPIRY_TIME) {
-        return parsed.items;
-      } else {
-        localStorage.removeItem(CART_STORAGE_KEY);
-      }
+      // Removed expiry check to keep cart persistent
+      return parsed.items;
     }
   } catch (error) {
     console.error("Failed to load cart from local storage", error);
@@ -50,6 +47,18 @@ const getInitialCart = (): CartItem[] => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(getInitialCart);
+  const [userId, setUserId] = useState<string>("");
+
+  useEffect(() => {
+    // Handle Anonymous User ID
+    let storedId = localStorage.getItem(USER_ID_KEY);
+    if (!storedId) {
+      const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+      storedId = `USR-${randomPart}`;
+      localStorage.setItem(USER_ID_KEY, storedId);
+    }
+    setUserId(storedId);
+  }, []);
 
   useEffect(() => {
     try {
@@ -96,7 +105,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice }}>
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice, userId }}>
       {children}
     </CartContext.Provider>
   );
