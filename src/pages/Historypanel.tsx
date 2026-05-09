@@ -725,6 +725,7 @@ const browseLabel = isMonthMode
           onClick={() => {
             setMode("today");
             setExportMode("day");
+            setSelectedMonth("");
           }}
           style={{
             display: "flex",
@@ -748,7 +749,11 @@ const browseLabel = isMonthMode
 
         {/* By Month button */}
         <button
-          onClick={() => setExportMode("month")}
+          onClick={() => {
+            setMode("lookup");
+            setExportMode("month");
+          }}
+
           style={{
             display: "flex",
             alignItems: "center",
