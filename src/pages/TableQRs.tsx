@@ -3,7 +3,7 @@
 // Print this page to get all 10 QR codes ready for each table.
 // Each QR links to: https://papicholoscdo.vercel.app/?table=N
 
-const BASE_URL = "https://papicholoscdo.vercel.app";
+const BASE_URL = "https://group-8-papichulos.vercel.app";
 const TABLE_COUNT = 10;
 
 // Uses Google Charts QR API — no library needed
