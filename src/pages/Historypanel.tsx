@@ -272,40 +272,29 @@ const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: stri
                     </span>
                   </div>
 
-                  {/* Pickup ID */}
-                  {order.pickup_id && (
-                    <div style={{ fontSize: 13, color: C.faint, marginBottom: 12 }}>
-                      Pickup ID —{" "}
-                      <span style={{ color: C.ink, fontWeight: 700, letterSpacing: "0.03em" }}>
-                        {order.pickup_id}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Inline GCash Receipt */}
-                  {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
-                    <div style={{ marginBottom: 12 }}>
-                      <Lbl t="GCash Receipt" />
-                      <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
-                        <img
-                          src={order.receipt_url}
-                          alt="GCash Receipt"
-                          style={{
-                            width: "100%",
-                            maxWidth: 200,
-                            borderRadius: 8,
-                            border: `1px solid ${C.line}`,
-                            objectFit: "contain",
-                            background: C.lift
-                          }}
-                        />
-                      </a>
-                    </div>
-                  )}
-
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
+                    {order.receipt_url && (
+                      <button
+                        onClick={() => window.open(order.receipt_url, "_blank")}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "9px 14px",
+                          borderRadius: 9,
+                          fontSize: 13,
+                          fontWeight: 500,
+                          background: C.surface,
+                          border: `1.5px solid ${C.border}`,
+                          color: C.mid,
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Receipt size={13} strokeWidth={1.5} /> Receipt
+                      </button>
+                    )}
                     <div
                       style={{
                         display: "flex",
@@ -419,7 +408,7 @@ export const HistoryPanel = ({
   const dateInputRef = useRef<HTMLInputElement>(null);
   const monthInputRef = useRef<HTMLInputElement>(null);
 
-const maxDate = todayKey();
+  const maxDate = todayKey();
   const displayDate = mode === "today" ? todayKey() : selectedDate;
   const dayOrders = orders.filter(
     (o) => toDateKey(o.created_at) === displayDate,
@@ -431,11 +420,11 @@ const maxDate = todayKey();
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   })();
-  const monthOrders = exportMode === "month" && selectedMonth 
+  const monthOrders = exportMode === "month" && selectedMonth
     ? orders.filter(o => {
-        const orderDateKey = toDateKey(o.created_at);
-        return orderDateKey.startsWith(selectedMonth);
-      })
+      const orderDateKey = toDateKey(o.created_at);
+      return orderDateKey.startsWith(selectedMonth);
+    })
     : [];
   const ordersToShow = exportMode === "month" && selectedMonth ? monthOrders : dayOrders;
   const isMonthMode = exportMode === "month";
@@ -472,12 +461,12 @@ const maxDate = todayKey();
     }
   };
 
-const browseLabel = isMonthMode 
-    ? selectedMonth 
-      ? new Date(selectedMonth + "-01").toLocaleDateString("en-PH", { 
-          year: "numeric", 
-          month: "long" 
-        })
+  const browseLabel = isMonthMode
+    ? selectedMonth
+      ? new Date(selectedMonth + "-01").toLocaleDateString("en-PH", {
+        year: "numeric",
+        month: "long"
+      })
       : "Select Month"
     : mode === "lookup"
       ? new Date(
@@ -987,7 +976,11 @@ const browseLabel = isMonthMode
       </div>
 
       {/* ── Order list ── */}
-      <OrderList orders={ordersToShow.length > 0 ? ordersToShow : dayOrders} filter={filter} />
+      <OrderList 
+        orders={ordersToShow.length > 0 ? ordersToShow : dayOrders} 
+        filter={filter} 
+        typeFilter={typeFilter}
+      />
     </div>
   );
 };

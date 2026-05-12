@@ -347,37 +347,6 @@ export const OrderCard = ({
               </span>
             </div>
 
-            {/* Pickup ID */}
-            {order.pickup_id && (
-              <div style={{ fontSize: 13, color: C.faint, marginBottom: 14 }}>
-                Pickup ID —{" "}
-                <span style={{ color: C.ink, fontWeight: 700, letterSpacing: "0.03em" }}>
-                  {order.pickup_id}
-                </span>
-              </div>
-            )}
-
-            {/* Inline GCash Receipt */}
-            {(order.payment_method === "gcash" || order.payment_method === "online") && order.receipt_url && (
-              <div style={{ marginBottom: 16 }}>
-                <Lbl t="GCash Receipt" />
-                <a href={order.receipt_url} target="_blank" rel="noreferrer" style={{ display: "block", marginTop: 6 }}>
-                  <img
-                    src={order.receipt_url}
-                    alt="GCash Receipt"
-                    style={{
-                      width: "100%",
-                      maxWidth: 200,
-                      borderRadius: 8,
-                      border: `1px solid ${C.line}`,
-                      objectFit: "contain",
-                      background: C.lift
-                    }}
-                  />
-                </a>
-              </div>
-            )}
-
             {/* ── Action buttons by status ── */}
 
             {/* PENDING → Start Preparing + Cancel */}

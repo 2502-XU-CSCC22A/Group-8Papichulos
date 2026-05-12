@@ -414,7 +414,7 @@ export default function Admin() {
 
   if (typeFilter !== "all") {
     shown = shown.filter((o) => {
-      const isPickup = o.customer_name?.includes("(ID:") || o.table_number?.length > 3;
+      const isPickup = !!o.pickup_id || o.customer_name?.includes("(ID:") || o.table_number?.length > 3;
       return typeFilter === "pickup" ? isPickup : !isPickup;
     });
   }
