@@ -71,6 +71,7 @@ const OrderList = ({ orders, filter, typeFilter }: { orders: any[]; filter: stri
         const isOpen = openId === order.id;
         const isCompleted = order.status === "completed";
         const isCancelled = order.status === "cancelled";
+        const isPickup = !!order.pickup_id || order.customer_name?.includes("(ID:") || order.table_number?.length > 3;
 
         return (
           <div
@@ -975,7 +976,11 @@ export const HistoryPanel = ({
       </div>
 
       {/* ── Order list ── */}
-      <OrderList orders={ordersToShow.length > 0 ? ordersToShow : dayOrders} filter={filter} />
+      <OrderList 
+        orders={ordersToShow.length > 0 ? ordersToShow : dayOrders} 
+        filter={filter} 
+        typeFilter={typeFilter}
+      />
     </div>
   );
 };
