@@ -91,3 +91,11 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+.adm-bottomnav::-webkit-scrollbar {
+  display: none;
+}
+.adm-bottomnav {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

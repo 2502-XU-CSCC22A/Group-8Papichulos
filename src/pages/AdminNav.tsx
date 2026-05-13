@@ -121,6 +121,8 @@ export const AdminBottomNav = ({ tab, setTab, pending }: BottomNavProps) => (
       padding: "10px 12px",
       paddingBottom: "calc(10px + env(safe-area-inset-bottom, 0px))",
       gap: 8,
+      overflowX: "auto",
+      WebkitOverflowScrolling: "touch",
     }}
   >
     {NAV.map(({ key, Icon, label }) => {
@@ -131,12 +133,13 @@ export const AdminBottomNav = ({ tab, setTab, pending }: BottomNavProps) => (
           key={key}
           onClick={() => setTab(key)}
           style={{
-            flex: 1,
+            flex: "0 0 auto",
+            whiteSpace: "nowrap",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 7,
-            padding: "10px 8px",
+            padding: "10px 16px",
             border: "none",
             borderRadius: 99,
             background: active ? C.ink : "transparent",
