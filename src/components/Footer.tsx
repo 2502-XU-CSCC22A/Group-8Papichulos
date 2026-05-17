@@ -167,7 +167,7 @@ const Footer = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundImage: "url('/BACKGROUND.png')",
+          backgroundImage: "url('/BACKGROUND.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -208,24 +208,20 @@ const Footer = () => {
           gap: "0px", // removed gap to handle spacing manually for independence
         }}
       >
-        {/* Fixed Logo Container — acts as an anchor so tagline doesn't move */}
-        <div style={{
-          height: "160px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "100%",
-          marginBottom: "8px"
-        }}>
+        {/* Responsive Logo Container */}
+        <div 
+          className="flex items-center justify-center w-full mb-4"
+          style={{
+            minHeight: "80px",
+          }}
+        >
           <img
-            src="/PAPICHOLOS-LOGO.png"
+            src="/PAPICHOLOS-LOGO-menu.webp"
             alt="Papicholo's CDO"
+            className="w-full max-w-[180px] sm:max-w-[240px] md:max-w-[280px] h-auto"
             style={{
-              width: "auto",
-              height: "432px",
               objectFit: "contain",
               userSelect: "none",
-              filter: "brightness(0) invert(1)",
               display: "block",
             }}
           />
