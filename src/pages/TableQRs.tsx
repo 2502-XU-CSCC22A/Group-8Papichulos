@@ -90,16 +90,8 @@ const TableQRs = () => {
           }}
         />
 
-        <div
-          style={{
-            fontSize: 11,
-            color: "#AAAAAA",
-            textAlign: "center",
-            wordBreak: "break-all",
-          }}
-        >
-          {BASE_URL}/?table={table}
-        </div>
+        {/* Hidden URL label (kept for printing layout only) */}
+        <div style={{ display: "none" }}>{BASE_URL}/?table={table}</div>
 
         <div
           style={{

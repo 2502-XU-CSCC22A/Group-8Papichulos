@@ -284,9 +284,7 @@ const TablesManager = () => {
         )}
       </div>
 
-      <div style={{ fontSize: 12, color: C.faint, lineHeight: 1.5 }}>
-        Note: Deleting a table deactivates it (so it disappears from QR printing). If you want hard-delete instead, change the Supabase mutation.
-      </div>
+
     </div>
   );
 };
