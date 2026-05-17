@@ -15,8 +15,13 @@ import { AdminTopBar, AdminBottomNav } from "./AdminNav";
 import { CategoryManager } from "./Categorymanager";
 import { CarouselManager } from "./Carouselmanager";
 import { SettingsManager } from "./SettingsManager";
+import TablesManager from "./TablesManager";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
+
+
+
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings" | "tables";
+
 
 // ── Inlined sound alert ────────────────────────────────────────────────────────
 let _audioCtx: AudioContext | null = null;
@@ -717,8 +722,12 @@ export default function Admin() {
               />
             )}
 
+            {/* ── Tables tab ── */}
+            {!loading && tab === "tables" && <TablesManager />}
+
             {/* ── Settings tab ── */}
             {!loading && tab === "settings" && <SettingsManager />}
+
           </div>
         </main>
       </div>

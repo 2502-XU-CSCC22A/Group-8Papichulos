@@ -3,16 +3,118 @@
 // Print this page to get all 10 QR codes ready for each table.
 // Each QR links to: https://papicholoscdo.vercel.app/?table=N
 
-const BASE_URL = "https://group-8-papichulos.vercel.app";
+const BASE_URL = typeof window !== "undefined" ? window.location.origin : "";
 const TABLE_COUNT = 10;
 
 // Uses Google Charts QR API — no library needed
+
 const qrUrl = (table: number) =>
   `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
     `${BASE_URL}/?table=${table}`,
   )}`;
 
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+type TableRow = { table_number: number };
+
 const TableQRs = () => {
+  const [loading, setLoading] = useState(true);
+  const [activeTableNumbers, setActiveTableNumbers] = useState<number[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("tables")
+        .select("table_number")
+        .eq("is_active", true)
+        .order("table_number", { ascending: true });
+
+      if (!error && data) {
+        const rows = data as { table_number: number }[];
+        setActiveTableNumbers(rows.map((r) => r.table_number));
+      }
+
+      setLoading(false);
+    })();
+  }, []);
+
+  const renderTableQrs = useMemo(() => {
+    const list = activeTableNumbers.length > 0 ? activeTableNumbers : Array.from({ length: TABLE_COUNT }, (_, i) => i + 1);
+    return list.map((table) => (
+      <div
+        key={table}
+        style={{
+          background: "#fff",
+          borderRadius: 16,
+          border: "1.5px solid #E8E8E8",
+          padding: "24px 20px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 14,
+          pageBreakInside: "avoid",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            color: "#AAAAAA",
+          }}
+        >
+          Table
+        </div>
+        <div
+          style={{
+            fontSize: 48,
+            fontWeight: 300,
+            color: "#0A0A0A",
+            letterSpacing: "-0.03em",
+            lineHeight: 1,
+          }}
+        >
+          {table}
+        </div>
+
+        <img
+          src={qrUrl(table)}
+          alt={`QR for Table ${table}`}
+          style={{
+            width: 180,
+            height: 180,
+            borderRadius: 8,
+          }}
+        />
+
+        <div
+          style={{
+            fontSize: 11,
+            color: "#AAAAAA",
+            textAlign: "center",
+            wordBreak: "break-all",
+          }}
+        >
+          {BASE_URL}/?table={table}
+        </div>
+
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 500,
+            color: "#5A5A5A",
+            textAlign: "center",
+          }}
+        >
+          Scan to order from this table
+        </div>
+      </div>
+    ));
+  }, [activeTableNumbers]);
+
   return (
     <div
       style={{
@@ -24,6 +126,7 @@ const TableQRs = () => {
     >
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 40 }}>
+
         <img
           src="/PAPICHOLOS-LOGO.png"
           alt="Papicholo's CDO"
@@ -72,82 +175,15 @@ const TableQRs = () => {
           margin: "0 auto",
         }}
       >
-        {Array.from({ length: TABLE_COUNT }, (_, i) => i + 1).map((table) => (
-          <div
-            key={table}
-            style={{
-              background: "#fff",
-              borderRadius: 16,
-              border: "1.5px solid #E8E8E8",
-              padding: "24px 20px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: 14,
-              pageBreakInside: "avoid",
-            }}
-          >
-            {/* Table number */}
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "#AAAAAA",
-              }}
-            >
-              Table
-            </div>
-            <div
-              style={{
-                fontSize: 48,
-                fontWeight: 300,
-                color: "#0A0A0A",
-                letterSpacing: "-0.03em",
-                lineHeight: 1,
-              }}
-            >
-              {table}
-            </div>
-
-            {/* QR code */}
-            <img
-              src={qrUrl(table)}
-              alt={`QR for Table ${table}`}
-              style={{
-                width: 180,
-                height: 180,
-                borderRadius: 8,
-              }}
-            />
-
-            {/* URL label */}
-            <div
-              style={{
-                fontSize: 11,
-                color: "#AAAAAA",
-                textAlign: "center",
-                wordBreak: "break-all",
-              }}
-            >
-              {BASE_URL}/?table={table}
-            </div>
-
-            {/* Scan instruction */}
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 500,
-                color: "#5A5A5A",
-                textAlign: "center",
-              }}
-            >
-              Scan to order from this table
-            </div>
+        {loading ? (
+          <div style={{ textAlign: "center", width: "100%", padding: "60px 0", color: "#AAAAAA" }}>
+            Loading active tables...
           </div>
-        ))}
+        ) : (
+          renderTableQrs
+        )}
       </div>
+
 
       {/* Print styles */}
       <style>{`
