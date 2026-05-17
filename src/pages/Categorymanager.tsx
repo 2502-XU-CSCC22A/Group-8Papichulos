@@ -45,11 +45,16 @@ export const CategoryManager = ({
 
   const deleteCategory = async (name: string) => {
     // Check if any menu items use this category
-    const { data: usedBy } = await supabase
+    const { data: usedBy, error } = await supabase
       .from("menu_items")
       .select("id")
       .eq("category", name)
       .limit(1);
+
+    if (error) {
+      toast.error(`Error checking usage: ${error.message}`);
+      return;
+    }
 
     if (usedBy && usedBy.length > 0) {
       toast.error(`"${name}" is used by menu items. Reassign them first.`);
@@ -69,7 +74,7 @@ export const CategoryManager = ({
       .delete()
       .eq("name", name);
     if (error) {
-      toast.error("Failed to delete category");
+      toast.error(`Failed: ${error.message}`);
     } else {
       onCategoriesChange(categories.filter((c) => c !== name));
       toast.success(`"${name}" removed`);
@@ -270,11 +275,12 @@ export const CategoryManager = ({
       </div>
 
       {/* Custom Confirmation Modal — Portal to body for true viewport centering */}
-      <AnimatePresence>
-        {confirmDelete &&
-          createPortal(
+      {createPortal(
+        <AnimatePresence>
+          {confirmDelete && (
             <>
               <motion.div
+                key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -289,6 +295,7 @@ export const CategoryManager = ({
                 }}
               />
               <motion.div
+                key="modal"
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -394,10 +401,11 @@ export const CategoryManager = ({
                   </button>
                 </div>
               </motion.div>
-            </>,
-            document.body
+            </>
           )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 };
