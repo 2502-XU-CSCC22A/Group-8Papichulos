@@ -69,6 +69,7 @@ export const GLOBAL_CSS = `
 export const ST: Record<string, { label: string; fg: string; bg: string }> = {
   pending:   { label: "Pending",   fg: "#c4c7c8", bg: "#2a2a2a" },
   preparing: { label: "Preparing", fg: "#ffdad6", bg: "#93000a" },
+  ready_for_pickup: { label: "Ready for Pickup", fg: "#e9d5ff", bg: "#581c87" },
   completed: { label: "Completed", fg: "#141313", bg: "#e2e2e2" },
   cancelled: { label: "Cancelled", fg: "#ffb4ab", bg: "#690005" },
 };
@@ -78,5 +79,5 @@ export const getSt = (s: string) => ST[s] ?? ST.pending;
 export const CATS = ["Tacos", "Burritos", "Sides", "Drinks", "Desserts"];
 
 // ── Order filter options ──────────────────────────────────────────────────────
-export const ORDER_FILTERS    = ["all", "pending", "preparing"];
+export const ORDER_FILTERS    = ["all", "pending", "preparing", "ready_for_pickup"];
 export const HISTORY_FILTERS  = ["all", "completed", "cancelled"];

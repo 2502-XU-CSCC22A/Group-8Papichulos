@@ -3,7 +3,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: number;
-  image_url: string | null;
+  image: string | null;
   category: string | null;
   is_available: boolean;
   details?: string[] | null;
@@ -15,17 +15,19 @@ export interface OrderItem {
   name: string;
   price: number;
   quantity: number;
-  image_url?: string | null;
+  image?: string | null;
 }
 
 export interface Order {
   id: string;
   customer_name: string;
   table_number: string;
-  total_amount: number;
+  total_price: number;
   status: 'pending' | 'preparing' | 'ready_for_pickup' | 'completed' | 'cancelled';
   order_items: OrderItem[];
   created_at: string;
+  payment_method?: string | null;
+  receipt_url?: string | null;
 }
 
 export interface Category {

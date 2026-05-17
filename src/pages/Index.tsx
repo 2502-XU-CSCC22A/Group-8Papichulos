@@ -8,6 +8,7 @@ import CheckoutDrawer from "@/components/CheckoutDrawer";
 import OrderStatusBar from "@/components/OrderStatusBar";
 import OrderTracker from "@/components/OrderTracker";
 import Footer from "@/components/Footer";
+import UserHistoryDrawer from "@/components/UserHistoryDrawer";
 import { AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "papi_active_order_id";
@@ -20,6 +21,8 @@ const IndexContent = ({ isPickup = false }: { isPickup?: boolean }) => {
   const [trackerOpen, setTrackerOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [trackerOrderId, setTrackerOrderId] = useState<string | null>(null);
 
   const handleOrderConfirmed = (id: string) => {
     setOrderId(id);
@@ -37,7 +40,7 @@ const IndexContent = ({ isPickup = false }: { isPickup?: boolean }) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onShowHistory={() => setHistoryOpen(true)} />
       <MenuGrid />
       <Footer />
 
@@ -71,12 +74,24 @@ const IndexContent = ({ isPickup = false }: { isPickup?: boolean }) => {
         isPickup={isPickup}
       />
 
+      <UserHistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onSelectOrder={(id) => {
+          setTrackerOrderId(id);
+          setTrackerOpen(true);
+        }}
+      />
+
       {/* Order tracker sheet — slides up over the menu */}
       <AnimatePresence>
-        {trackerOpen && orderId && (
+        {trackerOpen && (trackerOrderId || orderId) && (
           <OrderTracker
-            orderId={orderId}
-            onClose={() => setTrackerOpen(false)}
+            orderId={(trackerOrderId || orderId)!}
+            onClose={() => {
+              setTrackerOpen(false);
+              setTimeout(() => setTrackerOrderId(null), 300);
+            }}
           />
         )}
       </AnimatePresence>

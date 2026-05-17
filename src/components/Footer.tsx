@@ -135,7 +135,7 @@ const Footer = () => {
           .from("carousel_images")
           .select("*")
           .order("created_at", { ascending: true }),
-        supabase.from("carousel_settings").select("*").eq("id", 1).single(),
+        supabase.from("carousel_settings").select("*").eq("id", 1).maybeSingle(),
       ]);
       if (imgs) setCarouselImages(imgs);
       if (settings) {

@@ -5,10 +5,11 @@ import {
   LayoutGrid,
   History,
   Images,
+  Settings,
 } from "lucide-react";
 import { C } from "./constants";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel";
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
 
 // ── Top bar ───────────────────────────────────────────────────────────────────
 interface TopBarProps {
@@ -119,6 +120,7 @@ const NAV: { key: TabKey; Icon: React.ElementType; label: string }[] = [
   { key: "inventory", Icon: LayoutGrid, label: "Inventory" },
   { key: "history", Icon: History, label: "History" },
   { key: "carousel", Icon: Images, label: "Carousel" },
+  { key: "settings", Icon: Settings, label: "Settings" },
 ];
 
 export const AdminBottomNav = ({ tab, setTab, pending }: BottomNavProps) => (

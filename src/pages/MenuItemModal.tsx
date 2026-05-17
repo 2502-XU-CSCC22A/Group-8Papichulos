@@ -19,7 +19,7 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const [form, setForm] = useState<Partial<MenuItem>>({});
+  const [form, setForm] = useState<Partial<Omit<MenuItem, "price">> & { price?: string | number }>({});
   const [detailsText, setDetailsText] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,8 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
       setForm((p) => ({ ...p, image: data.publicUrl }));
       toast.success("Photo updated");
     } else {
-      toast.error("Failed to upload image");
+      toast.error("Upload failed: " + error.message);
+      console.error("Supabase upload error:", error);
     }
     setUploading(false);
   };
@@ -75,7 +76,7 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
     const sanitized = {
       name: form.name.trim(),
       description: form.description?.trim() ?? "",
-      price: parseFloat(form.price) || 0,
+      price: Number(form.price) || 0,
       image: form.image ?? "/placeholder.svg",
       category: form.category ?? (categories[0] || "Uncategorized"),
       details: details.length > 0 ? details : null,
@@ -328,10 +329,10 @@ export const MenuItemModal: React.FC<MenuItemModalProps> = ({
             background: C.lift,
           }}
         >
-          <Btn v="ghost" onClick={onClose} sx={{ fontSize: 13, px: 20 }}>
+          <Btn v="ghost" onClick={onClose} sx={{ fontSize: 13, padding: "0 20px" }}>
             Cancel
           </Btn>
-          <Btn onClick={handleSave} sx={{ fontSize: 13, px: 24 }}>
+          <Btn onClick={handleSave} sx={{ fontSize: 13, padding: "0 24px" }}>
             <Check size={14} strokeWidth={2} style={{ marginRight: 6 }} />{" "}
             Save Changes
           </Btn>

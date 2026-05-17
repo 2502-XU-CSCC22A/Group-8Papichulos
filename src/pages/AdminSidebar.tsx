@@ -5,11 +5,12 @@ import {
   LogOut,
   Images,
   ExternalLink,
+  Settings,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { C } from "./constants";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel";
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
 
 interface AdminSidebarProps {
   tab: TabKey;
@@ -23,6 +24,7 @@ const NAV: { key: TabKey; Icon: React.ElementType; label: string }[] = [
   { key: "inventory", Icon: LayoutGrid, label: "Inventory" },
   { key: "history", Icon: History, label: "History" },
   { key: "carousel", Icon: Images, label: "Carousel" },
+  { key: "settings", Icon: Settings, label: "Settings" },
 ];
 
 export const AdminSidebar = ({

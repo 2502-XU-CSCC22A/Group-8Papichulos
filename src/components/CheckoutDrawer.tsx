@@ -1,5 +1,5 @@
 import { formatPrice } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import {
   Drawer,
@@ -35,6 +35,27 @@ const CheckoutDrawer = ({ open, onClose, onConfirm, isPickup = false }: Checkout
   const [payment, setPayment] = useState(isPickup ? "gcash" : "counter");
   const [receipt, setReceipt] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkoutFee, setCheckoutFee] = useState<number>(0);
+  const [qrTimestamp] = useState(Date.now());
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase.storage.from("menu-items").download("settings/checkout-fee.json");
+        if (error) return;
+        const text = await data.text();
+        const json = JSON.parse(text);
+        if (json.fee !== undefined) {
+           setCheckoutFee(Number(json.fee) || 0);
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const finalPrice = totalPrice + checkoutFee;
 
   // ── Read table number from URL ?table=X automatically ─────────────
   const urlTable =
@@ -88,7 +109,7 @@ const CheckoutDrawer = ({ open, onClose, onConfirm, isPickup = false }: Checkout
           {
             customer_name: name,
             table_number: tableNumber,
-            total_price: totalPrice,
+            total_price: finalPrice,
             payment_method: payment,
             receipt_url: receiptUrl,
             status: "pending",
@@ -103,6 +124,13 @@ const CheckoutDrawer = ({ open, onClose, onConfirm, isPickup = false }: Checkout
       const newOrderId = orderData?.id as string;
       // Persist for accountless tracking
       localStorage.setItem("papi_active_order_id", newOrderId);
+      
+      const historyStr = localStorage.getItem("papi_order_history");
+      const history = historyStr ? JSON.parse(historyStr) : [];
+      if (!history.includes(newOrderId)) {
+        history.unshift(newOrderId);
+        localStorage.setItem("papi_order_history", JSON.stringify(history));
+      }
 
       toast.success("Order placed successfully!");
       clearCart();
@@ -428,9 +456,12 @@ const CheckoutDrawer = ({ open, onClose, onConfirm, isPickup = false }: Checkout
                   }}
                 >
                   <img
-                    src="/gcash-qr.jpg"
+                    src={`${supabase.storage.from("menu-items").getPublicUrl("settings/gcash-qr.jpg").data.publicUrl}?t=${qrTimestamp}`}
                     alt="GCash QR Code"
                     style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                    onError={(e) => {
+                      e.currentTarget.src = "/gcash-qr.jpg";
+                    }}
                   />
                 </div>
                 <p
@@ -532,37 +563,70 @@ const CheckoutDrawer = ({ open, onClose, onConfirm, isPickup = false }: Checkout
           <DrawerFooter style={{ padding: "0", marginTop: "auto" }}>
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
                 borderTop: "1px solid #444748",
                 paddingTop: "20px",
                 marginBottom: "16px",
               }}
             >
-              <span
+              {checkoutFee > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <span style={{ fontSize: "12px", color: "#8e9192", fontFamily: "'Inter', sans-serif" }}>Subtotal</span>
+                  <span style={{ fontSize: "12px", color: "#ffffff", fontFamily: "'Inter', sans-serif" }}>₱{formatPrice(totalPrice)}</span>
+                </div>
+              )}
+              {checkoutFee > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <span style={{ fontSize: "12px", color: "#8e9192", fontFamily: "'Inter', sans-serif" }}>Checkout Fee</span>
+                  <span style={{ fontSize: "12px", color: "#ffffff", fontFamily: "'Inter', sans-serif" }}>₱{formatPrice(checkoutFee)}</span>
+                </div>
+              )}
+              <div
                 style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: "10px",
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "#8e9192",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  borderTop: checkoutFee > 0 ? "1px solid #444748" : "none",
+                  paddingTop: checkoutFee > 0 ? "16px" : "0",
                 }}
               >
-                Amount to Pay
-              </span>
-              <span
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "28px",
-                  fontWeight: 800,
-                  color: "#ffffff",
-                  letterSpacing: "-0.03em",
-                }}
-              >
-                ₱{formatPrice(totalPrice)}
-              </span>
+                <span
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "#8e9192",
+                  }}
+                >
+                  Total to Pay
+                </span>
+                <span
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: "28px",
+                    fontWeight: 800,
+                    color: "#ffffff",
+                    letterSpacing: "-0.03em",
+                  }}
+                >
+                  ₱{formatPrice(finalPrice)}
+                </span>
+              </div>
             </div>
             <Button
               type="submit"

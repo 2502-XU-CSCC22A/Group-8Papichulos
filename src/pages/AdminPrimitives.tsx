@@ -2,8 +2,9 @@ import React from "react";
 import { C, f, getSt } from "./constants";
 
 // ── Status Pill ───────────────────────────────────────────────────────────────
-export const Pill = ({ status }: { status: string }) => {
+export const Pill = ({ status, isPickup }: { status: string; isPickup?: boolean }) => {
   const s = getSt(status);
+  const label = status === "ready_for_pickup" && isPickup === false ? "Ready to Serve" : s.label;
   return (
     <span
       style={{
@@ -30,7 +31,7 @@ export const Pill = ({ status }: { status: string }) => {
           flexShrink: 0,
         }}
       />
-      {s.label}
+      {label}
     </span>
   );
 };

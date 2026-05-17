@@ -10,7 +10,8 @@ interface OrderTrackerProps {
 const DINE_IN_STEPS: { key: OrderStatus | "received"; label: string; sub: string }[] = [
   { key: "received",  label: "Order Received", sub: "We got your order!" },
   { key: "preparing", label: "Preparing",       sub: "The kitchen is on it." },
-  { key: "completed", label: "Ready to Serve",  sub: "Your food is on the way!" },
+  { key: "ready_for_pickup", label: "Ready to Serve",  sub: "Your food is on the way!" },
+  { key: "completed", label: "Completed",  sub: "Enjoy your meal!" },
 ];
 
 const PICKUP_STEPS: { key: OrderStatus | "received"; label: string; sub: string }[] = [
@@ -23,12 +24,8 @@ const PICKUP_STEPS: { key: OrderStatus | "received"; label: string; sub: string 
 function getStepIndex(status: OrderStatus, isPickup: boolean): number {
   if (status === "pending")   return 0;
   if (status === "preparing") return 1;
-  if (isPickup) {
-    if (status === "ready_for_pickup") return 2;
-    if (status === "completed") return 3;
-  } else {
-    if (status === "completed") return 2;
-  }
+  if (status === "ready_for_pickup") return 2;
+  if (status === "completed") return 3;
   return -1;
 }
 
@@ -151,7 +148,7 @@ const OrderTracker = ({ orderId, onClose }: OrderTrackerProps) => {
           >
             {loading      ? "Loading…"
              : isCancelled ? "Cancelled"
-             : isDone      ? (isPickup ? "Picked Up!" : "Ready!")
+             : isDone      ? (isPickup ? "Picked Up!" : "Served!")
              : (activeStep === 1 || activeStep === 2) ? STEPS[activeStep].label
              : "Order Received"}
           </motion.h2>

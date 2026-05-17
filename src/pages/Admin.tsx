@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { Loader2, Plus, Tag } from "lucide-react";
+import { Loader2, Plus, Tag, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 import { C, GLOBAL_CSS, ORDER_FILTERS } from "./constants";
@@ -17,8 +17,9 @@ import { AdminTopBar, AdminBottomNav } from "./AdminNav";
 import { motion, AnimatePresence } from "framer-motion";
 import { CategoryManager } from "./Categorymanager";
 import { CarouselManager } from "./Carouselmanager";
+import { SettingsManager } from "./SettingsManager";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel";
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
 
 import { useOrderAlert } from "./Userorderalert";
 import { MenuItem, Order, CarouselImage } from "../types";
@@ -135,7 +136,7 @@ export default function Admin() {
           .from("carousel_images")
           .select("*")
           .order("created_at", { ascending: true }),
-        supabase.from("carousel_settings").select("*").eq("id", 1).single(),
+        supabase.from("carousel_settings").select("*").eq("id", 1).maybeSingle(),
       ]);
       if (m) setItems(m as MenuItem[]);
       if (o) setOrders(o as Order[]);
@@ -199,7 +200,7 @@ export default function Admin() {
   }, [authed]);
 
   // ── Order actions ──────────────────────────────────────────────────────────
-  const updateOrderStatus = async (id: string, status: string) => {
+  const updateOrderStatus = async (id: string, status: Order["status"]) => {
     const { error } = await supabase
       .from("orders")
       .update({ status })
@@ -277,9 +278,9 @@ export default function Admin() {
   // ── Guard ──────────────────────────────────────────────────────────────────
   if (!authed) return <LoginGate onLogin={login} />;
 
-  // Active orders = pending + preparing only
+  // Active orders = pending + preparing + ready_for_pickup
   const activeOrders = orders.filter(
-    (o) => o.status === "pending" || o.status === "preparing",
+    (o) => o.status === "pending" || o.status === "preparing" || o.status === "ready_for_pickup",
   );
   const historyOrders = orders.filter(
     (o) => o.status === "completed" || o.status === "cancelled",
@@ -367,7 +368,9 @@ export default function Admin() {
                         ? "Inventory"
                         : tab === "history"
                           ? "Order History"
-                          : "Carousel"}
+                          : tab === "carousel"
+                            ? "Carousel"
+                            : "Checkout Settings"}
                   </h1>
                   <p style={{ fontSize: 14, color: C.faint, fontWeight: 400 }}>
                     {tab === "orders"
@@ -381,7 +384,9 @@ export default function Admin() {
                               day: "numeric",
                               year: "numeric",
                             })
-                          : "Manage your menu carousel"}
+                          : tab === "carousel"
+                            ? "Manage your menu carousel"
+                            : "Manage checkout fees and payment QR"}
                   </p>
                 </div>
 
@@ -442,7 +447,7 @@ export default function Admin() {
                       color: filter === fl ? C.white : C.mid,
                     }}
                   >
-                    {fl.charAt(0).toUpperCase() + fl.slice(1)}
+                    {fl === "ready_for_pickup" ? "Ready" : fl.charAt(0).toUpperCase() + fl.slice(1)}
                   </button>
                 ))}
               </div>
@@ -539,6 +544,9 @@ export default function Admin() {
                 onSpeedChange={(v) => setCarouselSpeed(v)}
               />
             )}
+
+            {/* ── Settings tab ── */}
+            {!loading && tab === "settings" && <SettingsManager />}
           </div>
           </motion.main>
         </AnimatePresence>

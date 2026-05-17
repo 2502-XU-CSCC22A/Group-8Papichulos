@@ -65,6 +65,7 @@ const OrderList = ({ orders, filter }: { orders: Order[]; filter: string }) => {
         const isOpen = openId === order.id;
         const isCompleted = order.status === "completed";
         const isCancelled = order.status === "cancelled";
+        const isPickup = order.table_number === "STORE-PICKUP" || order.table_number.startsWith("PUP-");
 
         return (
           <div
@@ -97,34 +98,57 @@ const OrderList = ({ orders, filter }: { orders: Order[]; filter: string }) => {
                   height: 42,
                   borderRadius: 10,
                   flexShrink: 0,
-                  background: C.lift,
-                  color: C.mid,
+                  background: isPickup ? "#F3E8FF" : C.lift,
+                  color: isPickup ? "#6B21A8" : C.mid,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 16,
-                  fontWeight: 500,
+                  fontWeight: 600,
+                  letterSpacing: isPickup ? "0.02em" : "-0.02em",
                 }}
               >
-                {order.table_number}
+                {isPickup ? "PU" : order.table_number}
               </div>
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
-                    fontSize: 15,
-                    fontWeight: 500,
-                    color: C.ink,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
                     marginBottom: 5,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
                   }}
                 >
-                  {order.customer_name}
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 500,
+                      color: C.ink,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {order.customer_name}
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: "0.05em",
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      backgroundColor: isPickup ? "#F3E8FF" : "#E0F2FE",
+                      color: isPickup ? "#6B21A8" : "#0369A1",
+                      textTransform: "uppercase"
+                    }}
+                  >
+                    {isPickup ? "Pickup" : "In-House"}
+                  </span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Pill status={order.status} />
+                  <Pill status={order.status} isPickup={isPickup} />
                   <span
                     style={{
                       fontSize: 12,
@@ -215,14 +239,39 @@ const OrderList = ({ orders, filter }: { orders: Order[]; filter: string }) => {
                   </div>
 
                   <div
-                    style={{ fontSize: 13, color: C.faint, marginBottom: 12 }}
+                    style={{ fontSize: 13, color: C.faint, marginBottom: 12, display: "flex", flexDirection: "column", gap: 6 }}
                   >
-                    Payment —{" "}
-                    <span style={{ color: C.mid, fontWeight: 500 }}>
-                      {order.payment_method === "gcash"
-                        ? "GCash"
-                        : "Pay at Counter"}
-                    </span>
+                    {isPickup && (
+                      <div>
+                        Pickup ID — <span style={{ color: C.mid, fontWeight: 500 }}>{order.table_number.startsWith("PUP-") ? order.table_number : "STORE-PICKUP"}</span>
+                      </div>
+                    )}
+                    <div>
+                      Customer — <span style={{ color: C.mid, fontWeight: 500 }}>{order.customer_name}</span>
+                    </div>
+                    <div>
+                      Payment —{" "}
+                      <span style={{ color: C.mid, fontWeight: 500 }}>
+                        {order.payment_method === "gcash"
+                          ? "GCash"
+                          : "Pay at Counter"}
+                      </span>
+                    </div>
+                    <div>
+                      Date & Time —{" "}
+                      <span style={{ color: C.mid, fontWeight: 500 }}>
+                        {new Date(order.created_at).toLocaleDateString("en-PH", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric"
+                        })}
+                        {" at "}
+                        {new Date(order.created_at).toLocaleTimeString("en-PH", {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </span>
+                    </div>
                   </div>
 
                   <div

@@ -309,7 +309,7 @@ export const OrderCard = ({
               flexWrap: "wrap" as const,
             }}
           >
-            <Pill status={status} />
+            <Pill status={status} isPickup={isPickup} />
             <AgeBadge createdAt={order.created_at} status={status} />
           </div>
         </div>
@@ -441,7 +441,7 @@ export const OrderCard = ({
               </div>
             )}
 
-            {/* PREPARING → Mark as Served OR Ready for Pickup */}
+            {/* PREPARING → Ready / Served */}
             {status === "preparing" && (
               <div style={{ display: "flex", gap: 8 }}>
                 {isPickup ? (
@@ -453,23 +453,23 @@ export const OrderCard = ({
                   </Btn>
                 ) : (
                   <Btn
-                    onClick={() => onUpdateStatus(order.id, "completed")}
+                    onClick={() => onUpdateStatus(order.id, "ready_for_pickup")}
                     sx={{ flex: 1, fontSize: 14 }}
                   >
-                    <Check size={14} strokeWidth={2} /> Mark as Served
+                    <Check size={14} strokeWidth={2} /> Ready to Serve
                   </Btn>
                 )}
               </div>
             )}
 
-            {/* READY FOR PICKUP → Mark as Picked Up */}
+            {/* READY FOR PICKUP / READY TO SERVE → Mark as Completed / Picked Up */}
             {status === "ready_for_pickup" && (
               <div style={{ display: "flex", gap: 8 }}>
                 <Btn
                   onClick={() => onUpdateStatus(order.id, "completed")}
                   sx={{ flex: 1, fontSize: 14 }}
                 >
-                  <CheckCircle2 size={14} strokeWidth={2} /> Mark as Picked Up
+                  <CheckCircle2 size={14} strokeWidth={2} /> {isPickup ? "Mark as Picked Up" : "Mark as Completed"}
                 </Btn>
               </div>
             )}
