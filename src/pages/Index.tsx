@@ -11,12 +11,13 @@ import Footer from "@/components/Footer";
 import UserHistoryDrawer from "@/components/UserHistoryDrawer";
 import { AnimatePresence } from "framer-motion";
 
-const STORAGE_KEY = "papi_active_order_id";
+const getStorageKey = (isPickup: boolean) => 
+  isPickup ? "papi_pickup_active_order_id" : "papi_active_order_id";
 
 const IndexContent = ({ isPickup = false }: { isPickup?: boolean }) => {
   // Restore any in-progress order from localStorage (survives refresh)
   const [orderId, setOrderId] = useState<string | null>(() =>
-    localStorage.getItem(STORAGE_KEY)
+    localStorage.getItem(getStorageKey(isPickup))
   );
   const [trackerOpen, setTrackerOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
@@ -33,7 +34,7 @@ const IndexContent = ({ isPickup = false }: { isPickup?: boolean }) => {
 
   const handleDismiss = () => {
     // Called by OrderStatusBar when order is completed or cancelled
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(getStorageKey(isPickup));
     setOrderId(null);
     setTrackerOpen(false);
   };
@@ -81,6 +82,7 @@ const IndexContent = ({ isPickup = false }: { isPickup?: boolean }) => {
           setTrackerOrderId(id);
           setTrackerOpen(true);
         }}
+        isPickup={isPickup}
       />
 
       {/* Order tracker sheet — slides up over the menu */}

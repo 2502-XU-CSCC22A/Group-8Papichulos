@@ -41,8 +41,13 @@ const fmtDate = (key: string) => {
 // ── Order list ────────────────────────────────────────────────────────────────
 const OrderList = ({ orders, filter }: { orders: Order[]; filter: string }) => {
   const [openId, setOpenId] = useState<string | null>(null);
-  const shown =
-    filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const shown = orders.filter((o) => {
+    const isPickup = o.table_number === "STORE-PICKUP" || o.table_number.startsWith("PUP-");
+    if (filter === "all") return true;
+    if (filter === "pickup") return isPickup;
+    if (filter === "in-house") return !isPickup;
+    return o.status === filter;
+  });
 
   if (shown.length === 0) {
     return (
@@ -753,14 +758,11 @@ export const HistoryPanel = ({
 
       {/* ── Filter pills ── */}
       <div
-        className="no-scrollbar"
         style={{
           display: "flex",
-          gap: 7,
+          gap: 5,
           marginBottom: 16,
-          overflowX: "auto",
-          WebkitOverflowScrolling: "touch",
-          paddingBottom: 2,
+          width: "100%",
         }}
       >
         {HISTORY_FILTERS.map((f) => (
@@ -768,19 +770,23 @@ export const HistoryPanel = ({
             key={f}
             onClick={() => setFilter(f)}
             style={{
-              flexShrink: 0,
-              padding: "8px 16px",
+              flex: 1,
+              padding: "8px 2px",
               borderRadius: 99,
-              fontSize: 13,
-              fontWeight: 500,
+              fontSize: 11,
+              fontWeight: 600,
               cursor: "pointer",
               transition: "all 0.15s",
               border: `1.5px solid ${filter === f ? C.ink : C.border}`,
               background: filter === f ? C.ink : C.surface,
               color: filter === f ? C.white : C.mid,
+              textAlign: "center",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            {f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === "in-house" ? "In-House" : f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
       </div>

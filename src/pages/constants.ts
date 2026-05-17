@@ -55,7 +55,7 @@ export const GLOBAL_CSS = `
     .adm-bottomnav  { display: none !important; }
     .adm-topbar     { padding: 0 32px !important; }
     .adm-main       { margin-left: 240px; }
-    .adm-content    { padding: 36px 40px 40px !important; max-width: 800px; }
+    .adm-content    { padding: 36px 40px 40px !important; max-width: 100%; }
     .adm-stats      { grid-template-columns: repeat(5, 1fr) !important; }
     .adm-menu-grid  { grid-template-columns: repeat(3, 1fr) !important; }
     .adm-filter-row { flex-wrap: nowrap !important; }
@@ -80,4 +80,4 @@ export const CATS = ["Tacos", "Burritos", "Sides", "Drinks", "Desserts"];
 
 // ── Order filter options ──────────────────────────────────────────────────────
 export const ORDER_FILTERS    = ["all", "pending", "preparing", "ready_for_pickup"];
-export const HISTORY_FILTERS  = ["all", "completed", "cancelled"];
+export const HISTORY_FILTERS  = ["all", "completed", "cancelled", "pickup", "in-house"];

@@ -29,16 +29,42 @@ export default function Admin() {
 
   // ── Check existing Supabase session on mount ───────────────────────────────
   useEffect(() => {
-    // Check if a session already exists (e.g. page refresh)
+    const isTabActive = () => !!sessionStorage.getItem("admin_tab_active");
+
+    // Check if a session already exists
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthed(!!session);
+      if (session && !isTabActive()) {
+        // Tab was closed or new tab opened. Force logout!
+        supabase.auth.signOut();
+        setAuthed(false);
+      } else if (session) {
+        setAuthed(true);
+      } else {
+        setAuthed(false);
+      }
     });
 
-    // Listen for auth state changes (login / logout)
+    // Listen for auth state changes (login / logout / token refresh)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthed(!!session);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) {
+        sessionStorage.setItem("admin_tab_active", "1");
+        setAuthed(true);
+      } else if (event === "SIGNED_OUT") {
+        sessionStorage.removeItem("admin_tab_active");
+        setAuthed(false);
+      } else if (session) {
+        // INITIAL_SESSION, TOKEN_REFRESHED, USER_UPDATED
+        if (!isTabActive()) {
+          supabase.auth.signOut();
+          setAuthed(false);
+        } else {
+          setAuthed(true);
+        }
+      } else {
+        setAuthed(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -319,6 +345,7 @@ export default function Admin() {
           display: "flex",
           flexDirection: "column",
           minWidth: 0,
+          width: "100%",
         }}
       >
         <AdminTopBar pending={pending} onLogout={logout} />
@@ -332,14 +359,15 @@ export default function Admin() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             style={{
               flex: 1,
+              width: "100%",
+              display: "block",
               overflowY: "auto",
               WebkitOverflowScrolling: "touch",
               paddingBottom: 80,
             }}
           >
           <div
-            className="adm-content"
-            style={{ maxWidth: 720, margin: "0 auto", padding: "24px 18px" }}
+            style={{ padding: "36px 40px", width: "100%", display: "block" }}
           >
             {/* ── Page heading — unique per tab ── */}
             <div style={{ marginBottom: 24 }}>
