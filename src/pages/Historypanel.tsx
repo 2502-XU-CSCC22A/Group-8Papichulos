@@ -45,7 +45,7 @@ const OrderList = ({ orders, filter }: { orders: Order[]; filter: string }) => {
     const isPickup = o.table_number === "STORE-PICKUP" || o.table_number.startsWith("PUP-");
     if (filter === "all") return true;
     if (filter === "pickup") return isPickup;
-    if (filter === "in-house") return !isPickup;
+    if (filter === "dine-in") return !isPickup;
     return o.status === filter;
   });
 
@@ -786,7 +786,7 @@ export const HistoryPanel = ({
               textOverflow: "ellipsis",
             }}
           >
-            {f === "in-house" ? "In-House" : f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === "dine-in" ? "Dine-in" : f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
       </div>

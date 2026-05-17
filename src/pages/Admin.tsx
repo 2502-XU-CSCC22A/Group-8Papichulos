@@ -312,10 +312,14 @@ export default function Admin() {
     (o) => o.status === "completed" || o.status === "cancelled",
   );
   const pending = orders.filter((o) => o.status === "pending").length;
-  const shown =
-    filter === "all"
-      ? activeOrders
-      : activeOrders.filter((o) => o.status === filter);
+  
+  const shown = activeOrders.filter((o) => {
+    if (filter === "all") return true;
+    const isPickup = o.table_number === "STORE-PICKUP" || o.table_number.startsWith("PUP-");
+    if (filter === "pickup") return isPickup;
+    if (filter === "dine-in") return !isPickup;
+    return o.status === filter; // for status filters like pending, preparing, ready_for_pickup
+  });
 
   return (
     <div

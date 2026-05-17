@@ -1,13 +1,3 @@
-// ── Inter font injection ───────────────────────────────────────────────────────
-if (typeof document !== "undefined" && !document.getElementById("adm-inter")) {
-  const l = document.createElement("link");
-  l.id = "adm-inter";
-  l.rel = "stylesheet";
-  l.href =
-    "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap";
-  document.head.appendChild(l);
-}
-
 // ── Color tokens ──────────────────────────────────────────────────────────────
 export const C = {
   bg:      "#141313",
@@ -79,5 +69,5 @@ export const getSt = (s: string) => ST[s] ?? ST.pending;
 export const CATS = ["Tacos", "Burritos", "Sides", "Drinks", "Desserts"];
 
 // ── Order filter options ──────────────────────────────────────────────────────
-export const ORDER_FILTERS    = ["all", "pending", "preparing", "ready_for_pickup"];
-export const HISTORY_FILTERS  = ["all", "completed", "cancelled", "pickup", "in-house"];
+export const ORDER_FILTERS    = ["all", "pending", "preparing", "ready_for_pickup", "pickup", "dine-in"];
+export const HISTORY_FILTERS  = ["all", "completed", "cancelled", "pickup", "dine-in"];
