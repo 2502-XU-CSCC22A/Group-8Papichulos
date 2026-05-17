@@ -123,13 +123,16 @@ const CheckoutDrawer = ({ open, onClose, onConfirm, isPickup = false }: Checkout
 
       const newOrderId = orderData?.id as string;
       // Persist for accountless tracking
-      localStorage.setItem("papi_active_order_id", newOrderId);
+      const activeOrderKey = isPickup ? "papi_pickup_active_order_id" : "papi_active_order_id";
+      const historyKey = isPickup ? "papi_pickup_order_history" : "papi_order_history";
+
+      localStorage.setItem(activeOrderKey, newOrderId);
       
-      const historyStr = localStorage.getItem("papi_order_history");
+      const historyStr = localStorage.getItem(historyKey);
       const history = historyStr ? JSON.parse(historyStr) : [];
       if (!history.includes(newOrderId)) {
         history.unshift(newOrderId);
-        localStorage.setItem("papi_order_history", JSON.stringify(history));
+        localStorage.setItem(historyKey, JSON.stringify(history));
       }
 
       toast.success("Order placed successfully!");

@@ -80,6 +80,12 @@ const OrderStatusBar = ({ orderId, onTap, onDismiss }: OrderStatusBarProps) => {
     } else if (order.status === "completed") {
       displayLabel = "Order Picked Up";
     }
+  } else {
+    // Dine-in specific overrides
+    if (order.status === "ready_for_pickup") {
+      displayLabel = "Food is Ready";
+      displaySub = "Your food is on the way!";
+    }
   }
 
   return (

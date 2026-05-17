@@ -9,9 +9,13 @@ interface UserHistoryDrawerProps {
   open: boolean;
   onClose: () => void;
   onSelectOrder: (orderId: string) => void;
+  isPickup?: boolean;
 }
 
-const UserHistoryDrawer = ({ open, onClose, onSelectOrder }: UserHistoryDrawerProps) => {
+const getHistoryKey = (isPickup: boolean) =>
+  isPickup ? "papi_pickup_order_history" : "papi_order_history";
+
+const UserHistoryDrawer = ({ open, onClose, onSelectOrder, isPickup = false }: UserHistoryDrawerProps) => {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -28,18 +32,20 @@ const UserHistoryDrawer = ({ open, onClose, onSelectOrder }: UserHistoryDrawerPr
     setOrders(prev => prev.filter(o => o.id !== orderId));
     
     // Update localStorage
-    const historyStr = localStorage.getItem("papi_order_history");
+    const historyKey = getHistoryKey(isPickup);
+    const historyStr = localStorage.getItem(historyKey);
     if (historyStr) {
       try {
         let historyIds = JSON.parse(historyStr);
         historyIds = historyIds.filter((id: string) => id !== orderId);
-        localStorage.setItem("papi_order_history", JSON.stringify(historyIds));
+        localStorage.setItem(historyKey, JSON.stringify(historyIds));
       } catch (err) {}
     }
   };
 
   const fetchOrders = async () => {
-    const historyStr = localStorage.getItem("papi_order_history");
+    const historyKey = getHistoryKey(isPickup);
+    const historyStr = localStorage.getItem(historyKey);
     if (!historyStr) {
       setOrders([]);
       return;
@@ -160,7 +166,9 @@ const UserHistoryDrawer = ({ open, onClose, onSelectOrder }: UserHistoryDrawerPr
                           variant="outline"
                           className={`rounded-none capitalize text-[10px] font-bold px-2.5 py-0.5 ${getStatusColor(order.status)}`}
                         >
-                          {order.status.replace("_", " ")}
+                          {order.status === "ready_for_pickup" && (!order.table_number || (order.table_number !== "STORE-PICKUP" && !order.table_number.startsWith("PUP-")))
+                            ? "ready to serve"
+                            : order.status.replace("_", " ")}
                         </Badge>
                         {(order.status === "completed" || order.status === "cancelled") && (
                           <button
