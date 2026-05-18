@@ -6,7 +6,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const BASE_URL = "https://papicholoscdo.vercel.app";
+const BASE_URL = typeof window !== "undefined" ? window.location.origin : "";
+
 
 type TableRow = { table_number: number };
 
@@ -159,17 +160,9 @@ const TableQRs = () => {
               }}
             />
 
-            {/* URL label */}
-            <div
-              style={{
-                fontSize: 11,
-                color: "#AAAAAA",
-                textAlign: "center",
-                wordBreak: "break-all",
-              }}
-            >
-              {BASE_URL}/?table={table}
-            </div>
+            {/* URL label intentionally hidden (scan via QR) */}
+            <div style={{ display: "none" }}>{BASE_URL}/?table={table}</div>
+
 
             {/* Scan instruction */}
             <div
