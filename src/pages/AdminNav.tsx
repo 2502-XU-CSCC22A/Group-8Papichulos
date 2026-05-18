@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { C } from "./constants";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings" | "tables";
+
 
 // ── Top bar ───────────────────────────────────────────────────────────────────
 interface TopBarProps {
@@ -120,8 +121,10 @@ const NAV: { key: TabKey; Icon: React.ElementType; label: string }[] = [
   { key: "inventory", Icon: LayoutGrid, label: "Inventory" },
   { key: "history", Icon: History, label: "History" },
   { key: "carousel", Icon: Images, label: "Carousel" },
+  { key: "tables", Icon: LayoutGrid, label: "Tables" },
   { key: "settings", Icon: Settings, label: "Settings" },
 ];
+
 
 export const AdminBottomNav = ({ tab, setTab, pending }: BottomNavProps) => (
   <nav

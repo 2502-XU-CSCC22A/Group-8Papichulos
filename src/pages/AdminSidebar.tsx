@@ -10,7 +10,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { C } from "./constants";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings" | "tables";
+
 
 interface AdminSidebarProps {
   tab: TabKey;
@@ -24,6 +25,7 @@ const NAV: { key: TabKey; Icon: React.ElementType; label: string }[] = [
   { key: "inventory", Icon: LayoutGrid, label: "Inventory" },
   { key: "history", Icon: History, label: "History" },
   { key: "carousel", Icon: Images, label: "Carousel" },
+  { key: "tables", Icon: LayoutGrid, label: "Tables" },
   { key: "settings", Icon: Settings, label: "Settings" },
 ];
 
@@ -36,7 +38,7 @@ export const AdminSidebar = ({
   <aside
     className="adm-sidebar"
     style={{
-      display: "none",
+      display: "flex",
       width: 240,
       flexShrink: 0,
       background: "rgba(20, 19, 19, 0.8)",

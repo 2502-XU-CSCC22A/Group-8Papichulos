@@ -18,8 +18,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CategoryManager } from "./Categorymanager";
 import { CarouselManager } from "./Carouselmanager";
 import { SettingsManager } from "./SettingsManager";
+import TablesManager from "./TablesManager";
 
-type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings";
+
+type TabKey = "orders" | "inventory" | "history" | "carousel" | "settings" | "tables";
+
+
 
 import { useOrderAlert } from "./Userorderalert";
 import { MenuItem, Order, CarouselImage } from "../types";
@@ -577,8 +581,17 @@ export default function Admin() {
               />
             )}
 
+            {/* ── Tables tab ── */}
+                {!loading && tab === "tables" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <TablesManager />
+              </div>
+            )}
+
+
             {/* ── Settings tab ── */}
             {!loading && tab === "settings" && <SettingsManager />}
+
           </div>
           </motion.main>
         </AnimatePresence>

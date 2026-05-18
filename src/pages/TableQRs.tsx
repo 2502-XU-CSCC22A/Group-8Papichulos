@@ -3,8 +3,14 @@
 // Print this page to get all 10 QR codes ready for each table.
 // Each QR links to: https://papicholoscdo.vercel.app/?table=N
 
-const BASE_URL = "https://papicholoscdo.vercel.app";
-const TABLE_COUNT = 10;
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
+
+const BASE_URL = typeof window !== "undefined" ? window.location.origin : "";
+
+
+type TableRow = { table_number: number };
+
 
 // Uses Google Charts QR API — no library needed
 const qrUrl = (table: number) =>
@@ -13,6 +19,33 @@ const qrUrl = (table: number) =>
   )}`;
 
 const TableQRs = () => {
+  const [loading, setLoading] = useState(true);
+  const [activeTableNumbers, setActiveTableNumbers] = useState<number[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("tables")
+        .select("table_number")
+        .eq("is_active", true)
+        .order("table_number", { ascending: true });
+
+      if (!error && data) {
+        const rows = data as TableRow[];
+        setActiveTableNumbers(rows.map((r) => r.table_number));
+      }
+
+      setLoading(false);
+    })();
+  }, []);
+
+  const qrTables = useMemo(() => {
+    if (activeTableNumbers.length > 0) return activeTableNumbers;
+    // fallback if no active tables found
+    return Array.from({ length: 10 }, (_, i) => i + 1);
+  }, [activeTableNumbers]);
+
   return (
     <div
       style={{
@@ -72,9 +105,14 @@ const TableQRs = () => {
           margin: "0 auto",
         }}
       >
-        {Array.from({ length: TABLE_COUNT }, (_, i) => i + 1).map((table) => (
-          <div
-            key={table}
+        {loading ? (
+          <div style={{ textAlign: "center", width: "100%", padding: "60px 0", color: "#AAAAAA" }}>
+            Loading active tables...
+          </div>
+        ) : (
+          qrTables.map((table) => (
+            <div
+              key={table}
             style={{
               background: "#fff",
               borderRadius: 16,
@@ -122,17 +160,9 @@ const TableQRs = () => {
               }}
             />
 
-            {/* URL label */}
-            <div
-              style={{
-                fontSize: 11,
-                color: "#AAAAAA",
-                textAlign: "center",
-                wordBreak: "break-all",
-              }}
-            >
-              {BASE_URL}/?table={table}
-            </div>
+            {/* URL label intentionally hidden (scan via QR) */}
+            <div style={{ display: "none" }}>{BASE_URL}/?table={table}</div>
+
 
             {/* Scan instruction */}
             <div
@@ -146,8 +176,10 @@ const TableQRs = () => {
               Scan to order from this table
             </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
+
 
       {/* Print styles */}
       <style>{`
